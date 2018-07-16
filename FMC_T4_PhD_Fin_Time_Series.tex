@@ -126,7 +126,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{2018/07/16}
+    \date{2018/07/17}
 
 \linespread{1.25}
 \usepackage{amsmath}
@@ -148,7 +148,9 @@ value of the Bombay Stock Exchange index (``Sensex'').
 \begin{Highlighting}[]
 \NormalTok{file_bse <-}\StringTok{ "SENSEX.csv"}
 \NormalTok{index_bse <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_bse)}
-\NormalTok{index_bse}\OperatorTok{$}\NormalTok{Date <-}\StringTok{ }\KeywordTok{as.Date}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Date, }\DataTypeTok{format =} \StringTok{"%d-%B-%Y"}\NormalTok{)}
+\NormalTok{index_bse}\OperatorTok{$}\NormalTok{Date <-}\StringTok{ }\KeywordTok{as.Date}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Date, }
+                          \DataTypeTok{format =} \StringTok{"%d-%B-%Y"}
+\NormalTok{                          )}
 
 \KeywordTok{plot}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Date,}
 \NormalTok{     index_bse}\OperatorTok{$}\NormalTok{Close,}
@@ -202,22 +204,19 @@ This index series is an example of a \emph{non-stationary} time series.
 This roughly means that the mean and the variance of such a series are
 functions of time.
 
-Here is another example of an index series that seems non-stationary:
-the cumulative price index (CPI) for India where the level in 2010 is
-standardized to 100.
-
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{file_cpi <-}\StringTok{ "IND_CPI_ALL_2010_100.csv"}
-\NormalTok{ind_cpi <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_cpi)}
+\NormalTok{file_sp500 <-}\StringTok{ "SP500.csv"}
+\NormalTok{ind_sp500 <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_sp500, }
+                             \DataTypeTok{col_types =} \KeywordTok{cols}\NormalTok{(}\DataTypeTok{DATE =} \KeywordTok{col_date}\NormalTok{(), }
+                                              \DataTypeTok{SP500 =} \KeywordTok{col_double}\NormalTok{())}
+\NormalTok{                             )}
 
-\NormalTok{ind_cpi <-}\StringTok{ }\NormalTok{ind_cpi }\OperatorTok{%>%}
-\StringTok{  }\NormalTok{dplyr}\OperatorTok{::}\KeywordTok{rename}\NormalTok{(}\StringTok{"CPI"}\NormalTok{ =}\StringTok{ }\NormalTok{INDCPIALLMINMEI)}
-
-\KeywordTok{ggplot}\NormalTok{(ind_cpi, }
-       \KeywordTok{aes}\NormalTok{(DATE, CPI)}
+\KeywordTok{ggplot}\NormalTok{(ind_sp500, }
+       \KeywordTok{aes}\NormalTok{(DATE, SP500)}
 \NormalTok{       ) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{color =} \StringTok{"blue"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{lwd =} \FloatTok{0.3}\NormalTok{,}
+            \DataTypeTok{color =} \StringTok{"blue"}\NormalTok{) }\OperatorTok{+}
 \StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{method =} \StringTok{"lm"}\NormalTok{,}
               \DataTypeTok{lty =} \StringTok{"dotdash"}\NormalTok{,}
               \DataTypeTok{lwd =} \FloatTok{0.6}\NormalTok{,}
@@ -226,12 +225,40 @@ standardized to 100.
 \NormalTok{              ) }\OperatorTok{+}
 \StringTok{  }\KeywordTok{theme_minimal}\NormalTok{() }\OperatorTok{+}
 \StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Years"}\NormalTok{,}
-       \DataTypeTok{y =} \StringTok{"CPI: India"}
+       \DataTypeTok{y =} \StringTok{"S&P500"}
 \NormalTok{       )}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/CPI_Ind-1} \end{center}
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/SP500-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{file_nikkei <-}\StringTok{ "NIKKEI225.csv"}
+\NormalTok{ind_nikkei <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_nikkei, }
+                             \DataTypeTok{col_types =} \KeywordTok{cols}\NormalTok{(}\DataTypeTok{DATE =} \KeywordTok{col_date}\NormalTok{(), }
+                                              \DataTypeTok{NIKKEI225 =} \KeywordTok{col_double}\NormalTok{())}
+\NormalTok{                             )}
+
+\KeywordTok{ggplot}\NormalTok{(ind_nikkei, }
+       \KeywordTok{aes}\NormalTok{(DATE, NIKKEI225)}
+\NormalTok{       ) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{lwd =} \FloatTok{0.3}\NormalTok{, }
+            \DataTypeTok{color =} \StringTok{"blue"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{method =} \StringTok{"lm"}\NormalTok{,}
+              \DataTypeTok{lty =} \StringTok{"dotdash"}\NormalTok{,}
+              \DataTypeTok{lwd =} \FloatTok{0.6}\NormalTok{,}
+              \DataTypeTok{se =}\NormalTok{ F,}
+              \DataTypeTok{color =} \StringTok{"red"}
+\NormalTok{              ) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_minimal}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Years"}\NormalTok{,}
+       \DataTypeTok{y =} \StringTok{"Nikkei225"}
+\NormalTok{       )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/Nikkei-1} \end{center}
 
 \section{Returns}\label{returns}
 
@@ -253,13 +280,83 @@ Return}\label{multi-period-simple-return}
 
 \[r_t[k] := \frac{p_t-p_{t-k}}{p_{t-k}} = \frac{p_t}{p_{t-k}}-1\]
 \[r_t[k] := \frac{p_t}{p_{t-k}}-1 = 
-\frac{p_t}{p_{t-1}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
-\[r_t[k] := (1+r_t)\hdots(1+r_{t-k+1})-1\]
+\frac{p_t}{p_{t-1}}\frac{p_{t-1}}{p_{t-2}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
+\[r_t[k] := (1+r_t)(1+r_{t-1})\hdots(1+r_{t-k+1})-1\]
+
+Multi-period returns are used to convert high frequency returns to low
+frequency returns---i.e., daily to monthly; or monthly to yearly etc.
+
+For example to convert monthly returns to annual returns:
+\[r_{t}[12]= [\prod_{j=0}^{12-1}(1+r_{t-j})]^{1/12}-1\]
+
+Often (when working with daily returns especially) \(1+r_t\approx r_t\),
+in which case: \[r_t[k]\approx \sum_{j=0}^{k-1}r_{t-j}\]
+
+Additionally, the simple returns for a portfolio with fractional weights
+\(w_1,\hdots,w_n\) are: \[r_{p,t}=\sum_{i=1}^n w_ir_{i,t}\]
+
+\subsection{Log Returns}\label{log-returns}
+
+We know that to compute yearly returns from say, monthly returns we use
+the following formula:
+\[r_{t}[12]= [\prod_{j=0}^{12-1}(1+r_{t-j})]^{1/12}-1\]
+
+In general, if a bank pays an annual interest of \(r^m_t\) \(m\) times a
+year, the interest rate for unit investment is \(r^m_t/m\) and after one
+year the value of the deposit is \((1+\frac{r_t^m}{m})^m\). If there is
+continous compounding, \(m\to \infty\), in which case the value of the
+investment becomes:
+
+\[\lim\limits_{m\to \infty}(1+\frac{r_t^m}{m})^m = e^{r_t}\]
+
+Hence it must be that:
+\[R_t = \log p_t-\log p_{t-1} = \log\frac{p_t}{p_{t-1}}\]
+
+A particular advantage of log-returns are that multiperiod log returns
+are merely the sum of one period log returns:
+
+\[R_t[k]=\log p_t - \log p_{t-k}=\log p_t - \log p_{t-1} + \log p_{t-1} -\hdots \log p_{t-k}\]
+\[R_t[k]= R_t[1]+R_t[2]+\hdots+R_t[k-1]\]
+
+\section{Stylized Facts}\label{stylized-facts}
+
+Stock prices, commodity prices, exchange rates etc. in empirical
+financial markets display many striking regularities discussed in Cont
+(2001).
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Fat Tails:} Unconditional return distributions have tails
+  fatter than those of normal distribution. Conditional return
+  distributions are also non-normal.
+\item
+  \textbf{Asymmetry:} Unconditional return distributions are negatively
+  skewed.
+\item
+  \textbf{Aggregated Normality:} Lower frequency returns resemble normal
+  distributions more than higher frequency returns.
+\item
+  \textbf{No Autocorrelation:} Except at high frequencies, returns
+  generally do not display autocorrelation.
+\item
+  \textbf{Volatility Clustering:} Return volatility is autocorrelated.
+\item
+  \textbf{Time-Varying Cross Correlation:} Correlation between assets
+  returns tends to be higher during high volatility periods especially
+  during market crashes.
+\end{enumerate}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
 
 \hypertarget{refs}{}
+\hypertarget{ref-Cont:2001}{}
+Cont, Rama. 2001. ``Empirical Properties of Asset Returns: Stylized
+Facts and Statistical Issues.'' \emph{Quantitative Finance} 1 (2):
+223--36.
+
 \hypertarget{ref-Jondeau_Poon_Rockinger:2007}{}
 Jondeau, Eric, Ser-Huang Poon, and Michael Rockinger. 2007.
 \emph{Financial Modeling Under Non-Gaussian Distributions}. Springer

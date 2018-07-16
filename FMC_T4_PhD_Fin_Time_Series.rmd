@@ -64,7 +64,9 @@ As an illustration we produce the daily time series for the closing value of the
 
 file_bse <- "SENSEX.csv"
 index_bse <- readr::read_csv(file_bse)
-index_bse$Date <- as.Date(index_bse$Date, format = "%d-%B-%Y")
+index_bse$Date <- as.Date(index_bse$Date, 
+                          format = "%d-%B-%Y"
+                          )
 
 plot(index_bse$Date,
      index_bse$Close,
@@ -108,23 +110,20 @@ It seems that the level of the series is rising and the fluctuations are sometim
 
 This index series is an example of a *non-stationary* time series. This roughly means that the mean and the variance of such a series are functions of time. 
 
-Here is another example of an index series that seems non-stationary: the cumulative price index (CPI) for India where the level in 2010 is standardized to 100.
 
+```{r SP500, warning = F}
 
+file_sp500 <- "SP500.csv"
+ind_sp500 <- readr::read_csv(file_sp500, 
+                             col_types = cols(DATE = col_date(), 
+                                              SP500 = col_double())
+                             )
 
-
-```{r CPI_Ind}
-
-file_cpi <- "IND_CPI_ALL_2010_100.csv"
-ind_cpi <- readr::read_csv(file_cpi)
-
-ind_cpi <- ind_cpi %>%
-  dplyr::rename("CPI" = INDCPIALLMINMEI)
-
-ggplot(ind_cpi, 
-       aes(DATE, CPI)
+ggplot(ind_sp500, 
+       aes(DATE, SP500)
        ) +
-  geom_line(color = "blue") +
+  geom_line(lwd = 0.3,
+            color = "blue") +
   geom_smooth(method = "lm",
               lty = "dotdash",
               lwd = 0.6,
@@ -133,11 +132,37 @@ ggplot(ind_cpi,
               ) +
   theme_minimal() +
   labs(x = "Years",
-       y = "CPI: India"
+       y = "S&P500"
        )
 
 ```
 
+
+```{r Nikkei, warning = F}
+
+file_nikkei <- "NIKKEI225.csv"
+ind_nikkei <- readr::read_csv(file_nikkei, 
+                             col_types = cols(DATE = col_date(), 
+                                              NIKKEI225 = col_double())
+                             )
+
+ggplot(ind_nikkei, 
+       aes(DATE, NIKKEI225)
+       ) +
+  geom_line(lwd = 0.3, 
+            color = "blue") +
+  geom_smooth(method = "lm",
+              lty = "dotdash",
+              lwd = 0.6,
+              se = F,
+              color = "red"
+              ) +
+  theme_minimal() +
+  labs(x = "Years",
+       y = "Nikkei225"
+       )
+
+```
 
 # Returns
 
@@ -153,7 +178,46 @@ The simple one period return for holding some asset whose price is given by the 
 
 \[r_t[k] := \frac{p_t-p_{t-k}}{p_{t-k}} = \frac{p_t}{p_{t-k}}-1\]
 \[r_t[k] := \frac{p_t}{p_{t-k}}-1 = 
-\frac{p_t}{p_{t-1}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
-\[r_t[k] := (1+r_t)\hdots(1+r_{t-k+1})-1\]
+\frac{p_t}{p_{t-1}}\frac{p_{t-1}}{p_{t-2}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
+\[r_t[k] := (1+r_t)(1+r_{t-1})\hdots(1+r_{t-k+1})-1\]
+
+Multi-period returns are used to convert high frequency returns to low frequency returns---i.e., daily to monthly; or monthly to yearly etc.
+
+For example to convert monthly returns to annual returns:
+\[r_{t}[12]= [\prod_{j=0}^{12-1}(1+r_{t-j})]^{1/12}-1\]
+
+Often (when working with daily returns especially) $1+r_t\approx r_t$, in which case:
+\[r_t[k]\approx \sum_{j=0}^{k-1}r_{t-j}\]
+
+Additionally, the simple returns for a portfolio with fractional weights $w_1,\hdots,w_n$ are:
+\[r_{p,t}=\sum_{i=1}^n w_ir_{i,t}\]
+
+## Log Returns
+
+We know that to compute yearly returns from say, monthly returns we use the following formula:
+\[r_{t}[12]= [\prod_{j=0}^{12-1}(1+r_{t-j})]^{1/12}-1\]
+
+In general, if a bank pays an annual interest of $r^m_t$ $m$ times a year, the interest rate for unit investment is $r^m_t/m$ and after one year the value of the deposit is $(1+\frac{r_t^m}{m})^m$. If there is continous compounding, $m\to \infty$, in which case the value of the investment becomes:
+
+\[\lim\limits_{m\to \infty}(1+\frac{r_t^m}{m})^m = e^{r_t}\]
+
+Hence it must be that:
+\[R_t = \log p_t-\log p_{t-1} = \log\frac{p_t}{p_{t-1}}\]
+
+A particular advantage of log-returns are that multiperiod log returns are merely the sum of one period log returns:
+
+\[R_t[k]=\log p_t - \log p_{t-k}=\log p_t - \log p_{t-1} + \log p_{t-1} -\hdots \log p_{t-k}\]
+\[R_t[k]= R_t[1]+R_t[2]+\hdots+R_t[k-1]\]
+
+# Stylized Facts
+
+Stock prices, commodity prices, exchange rates etc. in empirical financial markets display many striking regularities discussed in @Cont:2001.
+
+1. **Fat Tails:** Unconditional return distributions have tails fatter than those of normal distribution. Conditional return distributions are also non-normal.
+2. **Asymmetry:** Unconditional return distributions are negatively skewed.
+3. **Aggregated Normality:** Lower frequency returns resemble normal distributions more than higher frequency returns.
+4. **No Autocorrelation:** Except at high frequencies, returns generally do not display autocorrelation.
+5. **Volatility Clustering:** Return volatility is autocorrelated.
+6. **Time-Varying Cross Correlation:** Correlation between assets returns tends to be higher during high volatility periods especially during market crashes.
 
 # References
