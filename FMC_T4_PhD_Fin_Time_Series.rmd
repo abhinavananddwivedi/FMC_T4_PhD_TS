@@ -1,0 +1,159 @@
+---
+title: "Financial Time Series"
+author: Abhinav Anand, IIMB
+date: '`r format(Sys.time(), "%Y/%m/%d")`' #current date
+
+output:
+  pdf_document:
+    keep_tex: true
+
+fontsize: 11pt
+documentclass: article
+geometry: margin = 1.5in
+
+linkcolor: blue
+urlcolor: red
+citecolor: magenta
+
+citation_package: natbib
+bibliography: Working_Paper.bib
+
+header-includes:
+   - \linespread{1.25}
+   - \usepackage{amsmath}
+
+
+---
+
+
+---
+nocite: |
+  @Tsay:2010
+  @Jondeau_Poon_Rockinger:2007
+...
+
+```{r setup, eval=T, message=FALSE, warning=F, include=FALSE}
+
+library(tidyverse)
+library(rmarkdown)
+library(knitr)
+library(xml2)
+library(quadprog)
+library(pracma)
+
+knitr::opts_chunk$set(echo = T, 
+                      warning = T, 
+                      message = F, 
+                      eval = T, 
+                      include = T,
+                      fig.height=3.5, 
+                      fig.width=3.5,
+                      fig.align = 'center'
+                      )
+```
+
+# Background
+
+Financial prices, indices, returns etc. are sequences of real numbers indexed by time. The study of their mathematical and statistical properties is vital for those aspiring to write papers in empirical finance. 
+
+As an illustration we produce the daily time series for the closing value of the Bombay Stock Exchange index ("Sensex"). 
+
+
+
+```{r BSE, warning=F}
+
+file_bse <- "SENSEX.csv"
+index_bse <- readr::read_csv(file_bse)
+index_bse$Date <- as.Date(index_bse$Date, format = "%d-%B-%Y")
+
+plot(index_bse$Date,
+     index_bse$Close,
+     type = "l",
+     col = "blue",
+     xlab = "Year",
+     ylab = "BSE Index",
+     main = "Indian stock market performance"
+     )
+fit_lm <- lm(Close ~ Date, 
+             data = index_bse) #fit linear model
+abline(fit_lm, #plot linear model line
+       lty = "dotdash", 
+       col = "red",
+       lwd = 2
+       )
+
+# via ggplot
+
+ggplot(data = index_bse, 
+       aes(Date, Close)
+       ) +
+  geom_line(lwd = 0.3,
+            color = "blue"
+            ) +
+  geom_smooth(method = "lm",
+              lty = "dotdash",
+              lwd = 0.6,
+              color = "red",
+              se = F) +
+  theme_minimal() +
+  labs(x = "Years",
+       y = "BSE Sensex",
+       title = "Indian stock market performance"
+       )
+  
+  
+```
+
+It seems that the level of the series is rising and the fluctuations are sometimes high and sometimes low. 
+
+This index series is an example of a *non-stationary* time series. This roughly means that the mean and the variance of such a series are functions of time. 
+
+Here is another example of an index series that seems non-stationary: the cumulative price index (CPI) for India where the level in 2010 is standardized to 100.
+
+
+
+
+```{r CPI_Ind}
+
+file_cpi <- "IND_CPI_ALL_2010_100.csv"
+ind_cpi <- readr::read_csv(file_cpi)
+
+ind_cpi <- ind_cpi %>%
+  dplyr::rename("CPI" = INDCPIALLMINMEI)
+
+ggplot(ind_cpi, 
+       aes(DATE, CPI)
+       ) +
+  geom_line(color = "blue") +
+  geom_smooth(method = "lm",
+              lty = "dotdash",
+              lwd = 0.6,
+              se = F,
+              color = "red"
+              ) +
+  theme_minimal() +
+  labs(x = "Years",
+       y = "CPI: India"
+       )
+
+```
+
+
+# Returns
+
+We observe prices in the financial markets empirically. However, due to their non-stationary nature, they are hard to analyze. Hence they are converted to return series which are usually stationary. There are many ways to construct different notions of returns from the same underlying price sequence. We discuss some prominent ones below.
+
+## One-Period Simple Return
+
+The simple one period return for holding some asset whose price is given by the sequence $\{p_t\}_{t=1}^n$ is:
+
+\[r_t := \frac{p_t-p_{t-1}}{p_{t-1}} = \frac{p_t}{p_{t-1}}-1\]
+
+## Multi-period Simple Return
+
+\[r_t[k] := \frac{p_t-p_{t-k}}{p_{t-k}} = \frac{p_t}{p_{t-k}}-1\]
+\[r_t[k] := \frac{p_t}{p_{t-k}}-1 = 
+\frac{p_t}{p_{t-1}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
+\[r_t[k] := (1+r_t)\hdots(1+r_{t-k+1})-1\]
+
+# References
