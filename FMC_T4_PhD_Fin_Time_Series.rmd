@@ -59,7 +59,6 @@ Financial prices, indices, returns etc. are sequences of real numbers indexed by
 As an illustration we produce the daily time series for the closing value of the Bombay Stock Exchange index ("Sensex"). 
 
 
-
 ```{r BSE, warning=F}
 
 file_bse <- "SENSEX.csv"
@@ -113,7 +112,7 @@ This index series is an example of a *non-stationary* time series. This roughly 
 
 ```{r SP500, warning = F}
 
-file_sp500 <- "SP500.csv"
+file_sp500 <- "SP500.csv" #S&P 500
 ind_sp500 <- readr::read_csv(file_sp500, 
                              col_types = cols(DATE = col_date(), 
                                               SP500 = col_double())
@@ -140,7 +139,7 @@ ggplot(ind_sp500,
 
 ```{r Nikkei, warning = F}
 
-file_nikkei <- "NIKKEI225.csv"
+file_nikkei <- "NIKKEI225.csv" #Nikkei 225
 ind_nikkei <- readr::read_csv(file_nikkei, 
                              col_types = cols(DATE = col_date(), 
                                               NIKKEI225 = col_double())

@@ -206,7 +206,7 @@ functions of time.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{file_sp500 <-}\StringTok{ "SP500.csv"}
+\NormalTok{file_sp500 <-}\StringTok{ "SP500.csv"} \CommentTok{#S&P 500}
 \NormalTok{ind_sp500 <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_sp500, }
                              \DataTypeTok{col_types =} \KeywordTok{cols}\NormalTok{(}\DataTypeTok{DATE =} \KeywordTok{col_date}\NormalTok{(), }
                                               \DataTypeTok{SP500 =} \KeywordTok{col_double}\NormalTok{())}
@@ -234,7 +234,7 @@ functions of time.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{file_nikkei <-}\StringTok{ "NIKKEI225.csv"}
+\NormalTok{file_nikkei <-}\StringTok{ "NIKKEI225.csv"} \CommentTok{#Nikkei 225}
 \NormalTok{ind_nikkei <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_nikkei, }
                              \DataTypeTok{col_types =} \KeywordTok{cols}\NormalTok{(}\DataTypeTok{DATE =} \KeywordTok{col_date}\NormalTok{(), }
                                               \DataTypeTok{NIKKEI225 =} \KeywordTok{col_double}\NormalTok{())}
