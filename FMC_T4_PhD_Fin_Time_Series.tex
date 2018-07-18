@@ -126,7 +126,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{2018/07/17}
+    \date{2018/07/19}
 
 \linespread{1.25}
 \usepackage{amsmath}
@@ -318,6 +318,165 @@ are merely the sum of one period log returns:
 \[R_t[k]=\log p_t - \log p_{t-k}=\log p_t - \log p_{t-1} + \log p_{t-1} -\hdots \log p_{t-k}\]
 \[R_t[k]= R_t[1]+R_t[2]+\hdots+R_t[k-1]\]
 
+\subsection{Computational Examples}\label{computational-examples}
+
+To construct return series from prices, we write a function that accepts
+as input a price (or index) sequence and returns a sequence of simple
+one period returns by using the formula
+\(r_t = \frac{p_t-p_{t-1}}{p_{t-1}}\). Since there is no return for the
+first entry of the price sequence, we append an \texttt{NA} at the
+beginning of the returns.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{func_pr_to_ret <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(price_vec)}
+\NormalTok{\{}
+  \CommentTok{# This function takes a vector of prices and }
+  \CommentTok{# returns a vector of simple one period returns}
+\NormalTok{  l <-}\StringTok{ }\KeywordTok{length}\NormalTok{(price_vec) }
+\NormalTok{  ret_num <-}\StringTok{ }\KeywordTok{diff}\NormalTok{(price_vec) }\CommentTok{#numerator = change in prices}
+\NormalTok{  ret_den <-}\StringTok{ }\NormalTok{price_vec[}\OperatorTok{-}\NormalTok{l] }\CommentTok{#denominator = price series}
+  
+  \KeywordTok{return}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\OtherTok{NA}\NormalTok{, ret_num}\OperatorTok{/}\NormalTok{ret_den)) }\CommentTok{#first return is NA}
+\NormalTok{\}}
+
+\NormalTok{price_vec_}\DecValTok{1}\NormalTok{ <-}\StringTok{ }\KeywordTok{seq}\NormalTok{(}\DataTypeTok{from =} \DecValTok{1}\NormalTok{, }\DataTypeTok{to =} \DecValTok{10}\NormalTok{, }\DataTypeTok{by =} \DecValTok{2}\NormalTok{)}
+\KeywordTok{func_pr_to_ret}\NormalTok{(price_vec_}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]        NA 2.0000000 0.6666667 0.4000000 0.2857143
+\end{verbatim}
+
+Similarly log-returns can be calculated using the formuala
+\(R_t = \log(p_t)-\log(p_{t-1})\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{func_pr_to_logret <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(p_vec)}
+\NormalTok{\{}
+  \CommentTok{# This function takes a vector of prices and }
+  \CommentTok{# returns a vector of log returns}
+\NormalTok{  log_price <-}\StringTok{ }\KeywordTok{log}\NormalTok{(p_vec)}
+\NormalTok{  log_ret <-}\StringTok{ }\KeywordTok{diff}\NormalTok{(log_price) }\CommentTok{#log ret = delta log p}
+  
+  \KeywordTok{return}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\OtherTok{NA}\NormalTok{, log_ret)) }\CommentTok{#first return is NA}
+\NormalTok{\}}
+
+\NormalTok{p_vec <-}\StringTok{ }\KeywordTok{seq}\NormalTok{(}\DataTypeTok{from =} \DecValTok{1}\NormalTok{, }\DataTypeTok{to =} \DecValTok{10}\NormalTok{, }\DataTypeTok{by =} \DecValTok{2}\NormalTok{)}
+\KeywordTok{func_pr_to_logret}\NormalTok{(p_vec)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]        NA 1.0986123 0.5108256 0.3364722 0.2513144
+\end{verbatim}
+
+\subsection{Return Series for Market
+Indices}\label{return-series-for-market-indices}
+
+We can compute returns and log-returns for the Bombay Stock Exchange
+Index, S\&P500 and the Nikkei 225 as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ret_BSE <-}\StringTok{ }\KeywordTok{func_pr_to_ret}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Close)}
+\KeywordTok{plot}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Date, }\CommentTok{#x variable}
+\NormalTok{     ret_BSE, }\CommentTok{#y variable}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{lwd =} \FloatTok{1.2}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"blue"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Years"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"BSE Returns"}
+\NormalTok{     )}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/return_market_index-1} \end{center}
+
+We can do the same for the S\&P500 and the Nikkei225 series:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ret_sp500 <-}\StringTok{ }\KeywordTok{func_pr_to_ret}\NormalTok{(ind_sp500}\OperatorTok{$}\NormalTok{SP500)}
+\KeywordTok{plot}\NormalTok{(ind_sp500}\OperatorTok{$}\NormalTok{DATE, }\CommentTok{#x variable}
+\NormalTok{     ret_sp500, }\CommentTok{#y variable}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{lwd =} \FloatTok{1.2}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"red"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Years"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"S&P500 Returns"}
+\NormalTok{     )}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/return_market_index_func-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ret_nikkei <-}\StringTok{ }\KeywordTok{func_pr_to_ret}\NormalTok{(ind_nikkei}\OperatorTok{$}\NormalTok{NIKKEI225)}
+\KeywordTok{plot}\NormalTok{(ind_nikkei}\OperatorTok{$}\NormalTok{DATE, }\CommentTok{#x variable}
+\NormalTok{     ret_nikkei, }\CommentTok{#y variable}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{lwd =} \FloatTok{1.2}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"green"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Years"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"Nikkei225 Returns"}
+\NormalTok{     )}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/return_market_index_func-2} \end{center}
+
+\subsection{Histograms for returns for each
+index}\label{histograms-for-returns-for-each-index}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{hist}\NormalTok{(ret_BSE,}
+     \DataTypeTok{breaks =} \DecValTok{40}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"grey"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Returns"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"Frequency"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Histogram for BSE"}
+\NormalTok{     )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/histograms-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{hist}\NormalTok{(ret_sp500,}
+     \DataTypeTok{breaks =} \DecValTok{40}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"grey"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Returns"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"Frequency"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Histogram for S&P500"}
+\NormalTok{     )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/histograms-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{hist}\NormalTok{(ret_nikkei,}
+     \DataTypeTok{breaks =} \DecValTok{40}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"grey"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Returns"}\NormalTok{,}
+     \DataTypeTok{ylab =} \StringTok{"Frequency"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Histogram for Nikkei225"}
+\NormalTok{     )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/histograms-3} \end{center}
+
 \section{Stylized Facts}\label{stylized-facts}
 
 Stock prices, commodity prices, exchange rates etc. in empirical
@@ -347,6 +506,14 @@ financial markets display many striking regularities discussed in Cont
   returns tends to be higher during high volatility periods especially
   during market crashes.
 \end{enumerate}
+
+\subsection{Summary Statistics of Empirical
+Returns}\label{summary-statistics-of-empirical-returns}
+
+min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
+
+\subsubsection{Aggregated Time Series Summary
+Stats}\label{aggregated-time-series-summary-stats}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}

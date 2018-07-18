@@ -59,7 +59,7 @@ Financial prices, indices, returns etc. are sequences of real numbers indexed by
 As an illustration we produce the daily time series for the closing value of the Bombay Stock Exchange index ("Sensex"). 
 
 
-```{r BSE, warning=F}
+```{r BSE, warning=F, cache=T}
 
 file_bse <- "SENSEX.csv"
 index_bse <- readr::read_csv(file_bse)
@@ -110,7 +110,7 @@ It seems that the level of the series is rising and the fluctuations are sometim
 This index series is an example of a *non-stationary* time series. This roughly means that the mean and the variance of such a series are functions of time. 
 
 
-```{r SP500, warning = F}
+```{r SP500, warning = F, cache=T}
 
 file_sp500 <- "SP500.csv" #S&P 500
 ind_sp500 <- readr::read_csv(file_sp500, 
@@ -137,7 +137,7 @@ ggplot(ind_sp500,
 ```
 
 
-```{r Nikkei, warning = F}
+```{r Nikkei, warning = F, cache=T}
 
 file_nikkei <- "NIKKEI225.csv" #Nikkei 225
 ind_nikkei <- readr::read_csv(file_nikkei, 
@@ -208,6 +208,127 @@ A particular advantage of log-returns are that multiperiod log returns are merel
 \[R_t[k]=\log p_t - \log p_{t-k}=\log p_t - \log p_{t-1} + \log p_{t-1} -\hdots \log p_{t-k}\]
 \[R_t[k]= R_t[1]+R_t[2]+\hdots+R_t[k-1]\]
 
+## Computational Examples
+
+To construct return series from prices, we write a function that accepts as input a price (or index) sequence and returns a sequence of simple one period returns by using the formula $r_t = \frac{p_t-p_{t-1}}{p_{t-1}}$. Since there is no return for the first entry of the price sequence, we append an `NA` at the beginning of the returns.
+
+```{r return_function}
+
+func_pr_to_ret <- function(price_vec)
+{
+  # This function takes a vector of prices and 
+  # returns a vector of simple one period returns
+  l <- length(price_vec) 
+  ret_num <- diff(price_vec) #numerator = change in prices
+  ret_den <- price_vec[-l] #denominator = price series
+  
+  return(c(NA, ret_num/ret_den)) #first return is NA
+}
+
+price_vec_1 <- seq(from = 1, to = 10, by = 2)
+func_pr_to_ret(price_vec_1)
+
+```
+
+Similarly log-returns can be calculated using the formuala $R_t = \log(p_t)-\log(p_{t-1})$.
+
+```{r log_return_function}
+
+func_pr_to_logret <- function(p_vec)
+{
+  # This function takes a vector of prices and 
+  # returns a vector of log returns
+  log_price <- log(p_vec)
+  log_ret <- diff(log_price) #log ret = delta log p
+  
+  return(c(NA, log_ret)) #first return is NA
+}
+
+p_vec <- seq(from = 1, to = 10, by = 2)
+func_pr_to_logret(p_vec)
+
+```
+
+## Return Series for Market Indices
+
+We can compute returns and log-returns for the Bombay Stock Exchange Index, S\&P500 and the Nikkei 225 as follows:
+
+```{r return_market_index}
+
+ret_BSE <- func_pr_to_ret(index_bse$Close)
+plot(index_bse$Date, #x variable
+     ret_BSE, #y variable
+     type = "l",
+     lwd = 1.2,
+     col = "blue",
+     xlab = "Years",
+     ylab = "BSE Returns"
+     )
+abline(h = 0)
+
+
+```
+
+We can do the same for the S&P500 and the Nikkei225 series:
+
+```{r return_market_index_func}
+
+ret_sp500 <- func_pr_to_ret(ind_sp500$SP500)
+plot(ind_sp500$DATE, #x variable
+     ret_sp500, #y variable
+     type = "l",
+     lwd = 1.2,
+     col = "red",
+     xlab = "Years",
+     ylab = "S&P500 Returns"
+     )
+abline(h = 0)
+
+
+ret_nikkei <- func_pr_to_ret(ind_nikkei$NIKKEI225)
+plot(ind_nikkei$DATE, #x variable
+     ret_nikkei, #y variable
+     type = "l",
+     lwd = 1.2,
+     col = "green",
+     xlab = "Years",
+     ylab = "Nikkei225 Returns"
+     )
+abline(h = 0)
+
+
+```
+
+## Histograms for returns for each index
+
+```{r histograms}
+
+hist(ret_BSE,
+     breaks = 40,
+     col = "grey",
+     xlab = "Returns",
+     ylab = "Frequency",
+     main = "Histogram for BSE"
+     )
+
+hist(ret_sp500,
+     breaks = 40,
+     col = "grey",
+     xlab = "Returns",
+     ylab = "Frequency",
+     main = "Histogram for S&P500"
+     )
+
+hist(ret_nikkei,
+     breaks = 40,
+     col = "grey",
+     xlab = "Returns",
+     ylab = "Frequency",
+     main = "Histogram for Nikkei225"
+     )
+
+```
+
 # Stylized Facts
 
 Stock prices, commodity prices, exchange rates etc. in empirical financial markets display many striking regularities discussed in @Cont:2001.
@@ -218,5 +339,11 @@ Stock prices, commodity prices, exchange rates etc. in empirical financial marke
 4. **No Autocorrelation:** Except at high frequencies, returns generally do not display autocorrelation.
 5. **Volatility Clustering:** Return volatility is autocorrelated.
 6. **Time-Varying Cross Correlation:** Correlation between assets returns tends to be higher during high volatility periods especially during market crashes.
+
+## Summary Statistics of Empirical Returns
+
+min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
+
+### Aggregated Time Series Summary Stats
 
 # References
