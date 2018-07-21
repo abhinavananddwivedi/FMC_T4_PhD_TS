@@ -37,9 +37,6 @@ nocite: |
 library(tidyverse)
 library(rmarkdown)
 library(knitr)
-library(xml2)
-library(quadprog)
-library(pracma)
 
 knitr::opts_chunk$set(echo = T, 
                       warning = T, 
@@ -50,22 +47,51 @@ knitr::opts_chunk$set(echo = T,
                       fig.width=3.5,
                       fig.align = 'center'
                       )
+
 ```
 
 # Background
 
 Financial prices, indices, returns etc. are sequences of real numbers indexed by time. The study of their mathematical and statistical properties is vital for those aspiring to write papers in empirical finance. 
 
+For example, consider the following plot of a hypothetical market index: what can we say about the market conditions from its ups and downs?
+
+```{r hypo_market_index, echo = F}
+
+plot(cumsum(rnorm(10000, 0, 1)),
+     type = "l",
+     col = "blue",
+     lwd = 1.2,
+     xlab = "Days",
+     ylab = "Hypothetical Index Levels"
+     )
+
+
+```
+
+The above series however generated via the command: `plot(cumsum(rnorm(10000, 0, 1))` which plots the cumulative sum of ten thousand standard normal realizations---a random walk! 
+
+The *random walk hypothesis* is a theory that claims that stock market prices obey a random walk process. This hypothesis is consistent with the "Efficient Market Hypothesis". Roughly speaking, the efficient market hypothesis claims in its weak form that for publicly traded stocks, all public information is captured in the price of the stock. The strong form of the hypothesis claims that *all* information---both public and private---is reflected the stock price. Hence according to this theory, any attempt to consistently beat the market in terms of risk-adjusted returns is doomed to failure.[^EMH]
+
+[^EMH]: Or, in other words, if investors beat the market it's not perhaps due to their so-called investing skills but due to their being lucky.
+
+Hence in particular, any attempt to discern patterns in the hypothetical market's ups and downs as shown above is worthless. 
+
+Do empirical financial markets behave in the same way too?
+
+# Empirical Financial Time Series
+
 As an illustration we produce the daily time series for the closing value of the Bombay Stock Exchange index ("Sensex"). 
 
 
-```{r BSE, warning=F, cache=T}
+```{r BSE}
 
 file_bse <- "SENSEX.csv"
-index_bse <- readr::read_csv(file_bse)
+index_bse <- readr::read_csv(file_bse) %>%
+  dplyr::select(-empty)
 index_bse$Date <- as.Date(index_bse$Date, 
                           format = "%d-%B-%Y"
-                          )
+                          ) #date reformat
 
 plot(index_bse$Date,
      index_bse$Close,
@@ -109,13 +135,16 @@ It seems that the level of the series is rising and the fluctuations are sometim
 
 This index series is an example of a *non-stationary* time series. This roughly means that the mean and the variance of such a series are functions of time. 
 
+Here is the index level time series for the US index S\&P500 from 2008:
 
-```{r SP500, warning = F, cache=T}
+```{r SP500}
 
 file_sp500 <- "SP500.csv" #S&P 500
 ind_sp500 <- readr::read_csv(file_sp500, 
                              col_types = cols(DATE = col_date(), 
-                                              SP500 = col_double())
+                                              SP500 = col_double()
+                                              ),
+                             na = c("", "NA", ".")
                              )
 
 ggplot(ind_sp500, 
@@ -136,13 +165,16 @@ ggplot(ind_sp500,
 
 ```
 
+And here it for the Japanese Nikkei225:
 
 ```{r Nikkei, warning = F, cache=T}
 
 file_nikkei <- "NIKKEI225.csv" #Nikkei 225
 ind_nikkei <- readr::read_csv(file_nikkei, 
                              col_types = cols(DATE = col_date(), 
-                                              NIKKEI225 = col_double())
+                                              NIKKEI225 = col_double()
+                                              ),
+                             na = c("", "NA", ".")
                              )
 
 ggplot(ind_nikkei, 
@@ -177,7 +209,7 @@ The simple one period return for holding some asset whose price is given by the 
 
 \[r_t[k] := \frac{p_t-p_{t-k}}{p_{t-k}} = \frac{p_t}{p_{t-k}}-1\]
 \[r_t[k] := \frac{p_t}{p_{t-k}}-1 = 
-\frac{p_t}{p_{t-1}}\frac{p_{t-1}}{p_{t-2}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
+\frac{p_t}{p_{t-1}}\frac{p_{t-1}}{p_{t-2}}\hdots\frac{p_{t-k+1}}{p_{t-k}}-1\]
 \[r_t[k] := (1+r_t)(1+r_{t-1})\hdots(1+r_{t-k+1})-1\]
 
 Multi-period returns are used to convert high frequency returns to low frequency returns---i.e., daily to monthly; or monthly to yearly etc.
@@ -299,35 +331,76 @@ abline(h = 0)
 
 ```
 
+One clearly sees that the index sequences have no trend now. It seems that the returns are fluctuating around a mean level 0. The fluctuations (volatility) around the mean are sometimes and sometimes low.
+
+# Stationarity of Time Series
+
+# Distribution of Returns
+
+## Summary Statistics of Empirical Returns
+
+```{r summ_stats}
+
+func_summ_stat_ind <- function(vec)
+{
+  summ_stat_ind <- data.frame(min = min(vec, na.rm = T),
+                       max = max(vec, na.rm = T),
+                       mean = mean(vec, na.rm = T),
+                       median = median(vec, na.rm =T),
+                       std = sd(vec, na.rm =T),
+                       iqr = IQR(vec, na.rm=T),
+                       var = var(vec, na.rm =T)
+                       ) %>%
+    signif(., digits = 2) #significant digits = 2
+  
+  return(summ_stat_ind)
+
+}
+
+table_summ_stat <- rbind(c("BSE", func_summ_stat_ind(ret_BSE)), 
+                         c("S&P500", func_summ_stat_ind(ret_sp500)), 
+                         c("Nikkei225", func_summ_stat_ind(ret_nikkei))
+                         )
+
+knitr::kable(table_summ_stat)
+
+
+
+```
+
+skewness and kurtosis
+
 ## Histograms for returns for each index
 
 ```{r histograms}
 
 hist(ret_BSE,
-     breaks = 40,
+     breaks = 80,
      col = "grey",
-     xlab = "Returns",
+     xlab = "Daily Returns",
      ylab = "Frequency",
      main = "Histogram for BSE"
      )
 
 hist(ret_sp500,
-     breaks = 40,
+     breaks = 80,
      col = "grey",
-     xlab = "Returns",
+     xlab = "Daily Returns",
      ylab = "Frequency",
      main = "Histogram for S&P500"
      )
 
 hist(ret_nikkei,
-     breaks = 40,
+     breaks = 80,
      col = "grey",
-     xlab = "Returns",
+     xlab = "Daily Returns",
      ylab = "Frequency",
      main = "Histogram for Nikkei225"
      )
 
 ```
+
+
 
 # Stylized Facts
 
@@ -339,11 +412,5 @@ Stock prices, commodity prices, exchange rates etc. in empirical financial marke
 4. **No Autocorrelation:** Except at high frequencies, returns generally do not display autocorrelation.
 5. **Volatility Clustering:** Return volatility is autocorrelated.
 6. **Time-Varying Cross Correlation:** Correlation between assets returns tends to be higher during high volatility periods especially during market crashes.
-
-## Summary Statistics of Empirical Returns
-
-min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
-
-### Aggregated Time Series Summary Stats
 
 # References

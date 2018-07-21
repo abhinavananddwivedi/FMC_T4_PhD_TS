@@ -73,6 +73,7 @@
 \newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
 \newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
 \newcommand{\NormalTok}[1]{#1}
+\usepackage{longtable,booktabs}
 \usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -126,7 +127,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{2018/07/19}
+    \date{2018/07/21}
 
 \linespread{1.25}
 \usepackage{amsmath}
@@ -141,16 +142,46 @@ indexed by time. The study of their mathematical and statistical
 properties is vital for those aspiring to write papers in empirical
 finance.
 
+For example, consider the following plot of a hypothetical market index:
+what can we say about the market conditions from its ups and downs?
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/hypo_market_index-1} \end{center}
+
+The above series however generated via the command:
+\texttt{plot(cumsum(rnorm(10000,\ 0,\ 1))} which plots the cumulative
+sum of ten thousand standard normal realizations---a random walk!
+
+The \emph{random walk hypothesis} is a theory that claims that stock
+market prices obey a random walk process. This hypothesis is consistent
+with the ``Efficient Market Hypothesis''. Roughly speaking, the
+efficient market hypothesis claims in its weak form that for publicly
+traded stocks, all public information is captured in the price of the
+stock. The strong form of the hypothesis claims that \emph{all}
+information---both public and private---is reflected the stock price.
+Hence according to this theory, any attempt to consistently beat the
+market in terms of risk-adjusted returns is doomed to failure.\footnote{Or,
+  in other words, if investors beat the market it's not perhaps due to
+  their so-called investing skills but due to their being lucky.}
+
+Hence in particular, any attempt to discern patterns in the hypothetical
+market's ups and downs as shown above is worthless.
+
+Do empirical financial markets behave in the same way too?
+
+\section{Empirical Financial Time
+Series}\label{empirical-financial-time-series}
+
 As an illustration we produce the daily time series for the closing
 value of the Bombay Stock Exchange index (``Sensex'').
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{file_bse <-}\StringTok{ "SENSEX.csv"}
-\NormalTok{index_bse <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_bse)}
+\NormalTok{index_bse <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_bse) }\OperatorTok{%>%}
+\StringTok{  }\NormalTok{dplyr}\OperatorTok{::}\KeywordTok{select}\NormalTok{(}\OperatorTok{-}\NormalTok{empty)}
 \NormalTok{index_bse}\OperatorTok{$}\NormalTok{Date <-}\StringTok{ }\KeywordTok{as.Date}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Date, }
                           \DataTypeTok{format =} \StringTok{"%d-%B-%Y"}
-\NormalTok{                          )}
+\NormalTok{                          ) }\CommentTok{#date reformat}
 
 \KeywordTok{plot}\NormalTok{(index_bse}\OperatorTok{$}\NormalTok{Date,}
 \NormalTok{     index_bse}\OperatorTok{$}\NormalTok{Close,}
@@ -204,12 +235,16 @@ This index series is an example of a \emph{non-stationary} time series.
 This roughly means that the mean and the variance of such a series are
 functions of time.
 
+Here is the index level time series for the US index S\&P500 from 2008:
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{file_sp500 <-}\StringTok{ "SP500.csv"} \CommentTok{#S&P 500}
 \NormalTok{ind_sp500 <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_sp500, }
                              \DataTypeTok{col_types =} \KeywordTok{cols}\NormalTok{(}\DataTypeTok{DATE =} \KeywordTok{col_date}\NormalTok{(), }
-                                              \DataTypeTok{SP500 =} \KeywordTok{col_double}\NormalTok{())}
+                                              \DataTypeTok{SP500 =} \KeywordTok{col_double}\NormalTok{()}
+\NormalTok{                                              ),}
+                             \DataTypeTok{na =} \KeywordTok{c}\NormalTok{(}\StringTok{""}\NormalTok{, }\StringTok{"NA"}\NormalTok{, }\StringTok{"."}\NormalTok{)}
 \NormalTok{                             )}
 
 \KeywordTok{ggplot}\NormalTok{(ind_sp500, }
@@ -230,14 +265,22 @@ functions of time.
 \end{Highlighting}
 \end{Shaded}
 
+\begin{verbatim}
+## Warning: Removed 92 rows containing non-finite values (stat_smooth).
+\end{verbatim}
+
 \begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/SP500-1} \end{center}
+
+And here it for the Japanese Nikkei225:
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{file_nikkei <-}\StringTok{ "NIKKEI225.csv"} \CommentTok{#Nikkei 225}
 \NormalTok{ind_nikkei <-}\StringTok{ }\NormalTok{readr}\OperatorTok{::}\KeywordTok{read_csv}\NormalTok{(file_nikkei, }
                              \DataTypeTok{col_types =} \KeywordTok{cols}\NormalTok{(}\DataTypeTok{DATE =} \KeywordTok{col_date}\NormalTok{(), }
-                                              \DataTypeTok{NIKKEI225 =} \KeywordTok{col_double}\NormalTok{())}
+                                              \DataTypeTok{NIKKEI225 =} \KeywordTok{col_double}\NormalTok{()}
+\NormalTok{                                              ),}
+                             \DataTypeTok{na =} \KeywordTok{c}\NormalTok{(}\StringTok{""}\NormalTok{, }\StringTok{"NA"}\NormalTok{, }\StringTok{"."}\NormalTok{)}
 \NormalTok{                             )}
 
 \KeywordTok{ggplot}\NormalTok{(ind_nikkei, }
@@ -280,7 +323,7 @@ Return}\label{multi-period-simple-return}
 
 \[r_t[k] := \frac{p_t-p_{t-k}}{p_{t-k}} = \frac{p_t}{p_{t-k}}-1\]
 \[r_t[k] := \frac{p_t}{p_{t-k}}-1 = 
-\frac{p_t}{p_{t-1}}\frac{p_{t-1}}{p_{t-2}}\hdots\frac{p_{t-k+1}}{p_t-k}-1\]
+\frac{p_t}{p_{t-1}}\frac{p_{t-1}}{p_{t-2}}\hdots\frac{p_{t-k+1}}{p_{t-k}}-1\]
 \[r_t[k] := (1+r_t)(1+r_{t-1})\hdots(1+r_{t-k+1})-1\]
 
 Multi-period returns are used to convert high frequency returns to low
@@ -432,15 +475,69 @@ We can do the same for the S\&P500 and the Nikkei225 series:
 
 \begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/return_market_index_func-2} \end{center}
 
+One clearly sees that the index sequences have no trend now. It seems
+that the returns are fluctuating around a mean level 0. The fluctuations
+(volatility) around the mean are sometimes and sometimes low.
+
+\section{Stationarity of Time Series}\label{stationarity-of-time-series}
+
+\section{Distribution of Returns}\label{distribution-of-returns}
+
+\subsection{Summary Statistics of Empirical
+Returns}\label{summary-statistics-of-empirical-returns}
+
+min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{func_summ_stat_ind <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(vec)}
+\NormalTok{\{}
+\NormalTok{  summ_stat_ind <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{min =} \KeywordTok{min}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+                       \DataTypeTok{max =} \KeywordTok{max}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+                       \DataTypeTok{mean =} \KeywordTok{mean}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+                       \DataTypeTok{median =} \KeywordTok{median}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{T),}
+                       \DataTypeTok{std =} \KeywordTok{sd}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{T),}
+                       \DataTypeTok{iqr =} \KeywordTok{IQR}\NormalTok{(vec, }\DataTypeTok{na.rm=}\NormalTok{T),}
+                       \DataTypeTok{var =} \KeywordTok{var}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{T)}
+\NormalTok{                       ) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{signif}\NormalTok{(., }\DataTypeTok{digits =} \DecValTok{2}\NormalTok{)}
+  
+  \KeywordTok{return}\NormalTok{(summ_stat_ind)}
+
+\NormalTok{\}}
+
+\NormalTok{table_summ_stat <-}\StringTok{ }\KeywordTok{rbind}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"BSE"}\NormalTok{, }\KeywordTok{func_summ_stat_ind}\NormalTok{(ret_BSE)), }
+                         \KeywordTok{c}\NormalTok{(}\StringTok{"S&P500"}\NormalTok{, }\KeywordTok{func_summ_stat_ind}\NormalTok{(ret_sp500)), }
+                         \KeywordTok{c}\NormalTok{(}\StringTok{"Nikkei225"}\NormalTok{, }\KeywordTok{func_summ_stat_ind}\NormalTok{(ret_nikkei))}
+\NormalTok{                         )}
+
+\NormalTok{knitr}\OperatorTok{::}\KeywordTok{kable}\NormalTok{(table_summ_stat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}llllllll@{}}
+\toprule
+& min & max & mean & median & std & iqr & var\tabularnewline
+\midrule
+\endhead
+BSE & -0.11 & 0.17 & 0.00061 & 0.00092 & 0.014 & 0.014 &
+2e-04\tabularnewline
+S\&P500 & -0.09 & 0.12 & 0.00038 & 0.00061 & 0.013 & 0.0093 &
+0.00016\tabularnewline
+Nikkei225 & -0.11 & 0.1 & 0.00014 & 0.00059 & 0.016 & 0.015 &
+0.00024\tabularnewline
+\bottomrule
+\end{longtable}
+
 \subsection{Histograms for returns for each
 index}\label{histograms-for-returns-for-each-index}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \KeywordTok{hist}\NormalTok{(ret_BSE,}
-     \DataTypeTok{breaks =} \DecValTok{40}\NormalTok{,}
+     \DataTypeTok{breaks =} \DecValTok{80}\NormalTok{,}
      \DataTypeTok{col =} \StringTok{"grey"}\NormalTok{,}
-     \DataTypeTok{xlab =} \StringTok{"Returns"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Daily Returns"}\NormalTok{,}
      \DataTypeTok{ylab =} \StringTok{"Frequency"}\NormalTok{,}
      \DataTypeTok{main =} \StringTok{"Histogram for BSE"}
 \NormalTok{     )}
@@ -452,9 +549,9 @@ index}\label{histograms-for-returns-for-each-index}
 \begin{Shaded}
 \begin{Highlighting}[]
 \KeywordTok{hist}\NormalTok{(ret_sp500,}
-     \DataTypeTok{breaks =} \DecValTok{40}\NormalTok{,}
+     \DataTypeTok{breaks =} \DecValTok{80}\NormalTok{,}
      \DataTypeTok{col =} \StringTok{"grey"}\NormalTok{,}
-     \DataTypeTok{xlab =} \StringTok{"Returns"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Daily Returns"}\NormalTok{,}
      \DataTypeTok{ylab =} \StringTok{"Frequency"}\NormalTok{,}
      \DataTypeTok{main =} \StringTok{"Histogram for S&P500"}
 \NormalTok{     )}
@@ -466,9 +563,9 @@ index}\label{histograms-for-returns-for-each-index}
 \begin{Shaded}
 \begin{Highlighting}[]
 \KeywordTok{hist}\NormalTok{(ret_nikkei,}
-     \DataTypeTok{breaks =} \DecValTok{40}\NormalTok{,}
+     \DataTypeTok{breaks =} \DecValTok{80}\NormalTok{,}
      \DataTypeTok{col =} \StringTok{"grey"}\NormalTok{,}
-     \DataTypeTok{xlab =} \StringTok{"Returns"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"Daily Returns"}\NormalTok{,}
      \DataTypeTok{ylab =} \StringTok{"Frequency"}\NormalTok{,}
      \DataTypeTok{main =} \StringTok{"Histogram for Nikkei225"}
 \NormalTok{     )}
@@ -506,11 +603,6 @@ financial markets display many striking regularities discussed in Cont
   returns tends to be higher during high volatility periods especially
   during market crashes.
 \end{enumerate}
-
-\subsection{Summary Statistics of Empirical
-Returns}\label{summary-statistics-of-empirical-returns}
-
-min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
 
 \subsubsection{Aggregated Time Series Summary
 Stats}\label{aggregated-time-series-summary-stats}
