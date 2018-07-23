@@ -335,6 +335,106 @@ One clearly sees that the index sequences have no trend now. It seems that the r
 
 # Stationarity of Time Series
 
+There's a clear difference between the plots of prices (or indices like the BSE); and the returns derived from them. Indices keep increasing with time, suggesting some type of a trend and tend to fluctuate more or less around the trend line. Returns, on the other hand seem to have no trend.
+
+## Stationarity
+
+A (strictly) *stationary* process is one for which the unconditional joint distribution does not change with time:
+\[F_X(x_1,\hdots,x_t)=F_X(x_{1+\delta},\hdots,x_{t+\delta})\]
+
+where $F_X(\cdot)$ is the distribution for the process $X_t$ and $\delta>0$. 
+
+In particular this implies that the mean and the variance (and other central moments) do not change with time.
+
+Inference for nonstationary series is difficult. Hence in practice we convert nonstationary processes to stationary processes before analyzing them.
+
+A *weakly stationary* time series is such that the mean of the process $\mathbb{E}(X_t) = \mu(t) = \mu$ and its (auto)covariance $\text{covar}(X_t, X_{t-\delta}) = \sigma_{\delta}$ depends only on the lag $\delta$. 
+
+Strictly stationary series are weakly stationary but not vice versa.
+
+### Trend Stationarity
+
+If the trend (mean) of the nonstationary process is deterministic, we have trend stationarity:
+\[X_t = \mu(t) + \epsilon_t\]
+
+where $\mu(\cdot)$ is a real function and $\epsilon_t$ is stationary process (say, $\mathcal{N}(0,1)$).
+
+Here is an illustration---suppose the mean is $\mu(t) = 1 + 2t$:
+
+```{r trend_stationary}
+
+t <- seq(0, 100, 0.4)
+
+plot((1 + 2*t + rnorm(length(t), 0, 10)),
+     type = "l",
+     lwd = 2,
+     col = "green",
+     xlab = "index",
+     main = "Trend stationary seris"
+     )
+lines((1+2*t),
+      type = "l",
+      col = "red",
+      lty = "dotdash",
+      lwd = 1.2
+      )
+
+```
+
+This can be made into a stationary process by *detrending*: subtracting $\mu(t) = 1+2t$ from the series, to recover $X_t-\mu(t)=\epsilon_t\sim \mathcal{N}(0, 10)$ in this case:
+
+```{r detrend}
+
+plot((1 + 2*t + rnorm(length(t), 0, 10) - (1 + 2*t)),
+     type = "l",
+     main = "Detrended series",
+     col = "green"
+     )
+abline(h = 0)
+
+
+```
+
+### Unit Roots
+
+A stochastic process has a unit root if 1 is the root of its characteristic equation. For example consider the following process:
+
+\[X_t = X_{t-1} + \epsilon_t\]
+
+It's characteristic equation is: $x - 1 = 0$. It's clear that $X_t - X_{t-1} = \epsilon_t$ is a stationary process. 
+
+Note that for trend stationary series we *detrended* to obtain a stationary series while for a unit root process, we *first-differenced* to arrive at a stationary series. Random walks are examples of unit root processes. 
+
+By repeated additions:
+
+\[X_T = X_0 + \sum_{t = 1}^T \epsilon_t\]
+
+Hence $\mathbb{E}(X_T) = X_0 + \mathbb{E}(\epsilon_T) = X_0$; and $\text{var}(X_T) = \text{var}(\sum_{t = 1}^T \epsilon_t) = T\cdot \sigma^2$. 
+
+```{r unit_root}
+
+plot(cumsum(rnorm(1000, 0, 10)),
+     type = "l",
+     lwd = 1.5,
+     col = "red",
+     main = "Unit root process"
+     )
+
+plot(rnorm(1000, 0, 10),
+     type = "l",
+     col = "blue",
+     main = "Differenced unit root process"
+     )
+
+
+```
+
+
+
+
+
+
+
 # Distribution of Returns
 
 ## Summary Statistics of Empirical Returns

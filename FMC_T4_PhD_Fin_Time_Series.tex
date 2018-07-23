@@ -127,7 +127,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{2018/07/21}
+    \date{2018/07/23}
 
 \linespread{1.25}
 \usepackage{amsmath}
@@ -481,12 +481,135 @@ that the returns are fluctuating around a mean level 0. The fluctuations
 
 \section{Stationarity of Time Series}\label{stationarity-of-time-series}
 
+There's a clear difference between the plots of prices (or indices like
+the BSE); and the returns derived from them. Indices keep increasing
+with time, suggesting some type of a trend and tend to fluctuate more or
+less around the trend line. Returns, on the other hand seem to have no
+trend.
+
+\subsection{Stationarity}\label{stationarity}
+
+A (strictly) \emph{stationary} process is one for which the
+unconditional joint distribution does not change with time:
+\[F_X(x_1,\hdots,x_t)=F_X(x_{1+\delta},\hdots,x_{t+\delta})\]
+
+where \(F_X(\cdot)\) is the distribution for the process \(X_t\) and
+\(\Delta>0\).
+
+In particular this implies that the mean and the variance (and other
+central moments) do not change with time.
+
+Inference for nonstationary series is difficult. Hence in practice we
+convert nonstationary processes to stationary processes before analyzing
+them.
+
+A \emph{weakly stationary} time series is such that the mean of the
+process \(\mathbb{E}(X_t) = \mu(t) = \mu\) and its (auto)covariance
+\(\text{covar}(X_t, X_{t-\delta}) = \sigma_{\delta}\) depends only on
+the lag \(\delta\).
+
+Strictly stationary series are weakly stationary but not vice versa.
+
+\subsubsection{Trend Stationarity}\label{trend-stationarity}
+
+If the trend (mean) of the nonstationary process is deterministic, we
+have trend stationarity: \[X_t = \mu(t) + \epsilon_t\]
+
+where \(\mu(\cdot)\) is a real function and \(\epsilon_t\) is stationary
+process (say, \(\mathcal{N}(0,1)\)).
+
+Here is an illustration---suppose the mean is \(\mu(t) = 1 + 2t\):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{t <-}\StringTok{ }\KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{100}\NormalTok{, }\FloatTok{0.4}\NormalTok{)}
+
+\KeywordTok{plot}\NormalTok{((}\DecValTok{1} \OperatorTok{+}\StringTok{ }\DecValTok{2}\OperatorTok{*}\NormalTok{t }\OperatorTok{+}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\KeywordTok{length}\NormalTok{(t), }\DecValTok{0}\NormalTok{, }\DecValTok{10}\NormalTok{)),}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{lwd =} \DecValTok{2}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"green"}\NormalTok{,}
+     \DataTypeTok{xlab =} \StringTok{"index"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Trend stationary seris"}
+\NormalTok{     )}
+\KeywordTok{lines}\NormalTok{((}\DecValTok{1}\OperatorTok{+}\DecValTok{2}\OperatorTok{*}\NormalTok{t),}
+      \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+      \DataTypeTok{col =} \StringTok{"red"}\NormalTok{,}
+      \DataTypeTok{lty =} \StringTok{"dotdash"}\NormalTok{,}
+      \DataTypeTok{lwd =} \FloatTok{1.2}
+\NormalTok{      )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/trend_stationary-1} \end{center}
+
+This can be made into a stationary process by \emph{detrending}:
+subtracting \(\mu(t) = 1+2t\) from the series, to recover
+\(X_t-\mu(t)=\epsilon_t\sim \mathcal{N}(0, 10)\) in this case:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{((}\DecValTok{1} \OperatorTok{+}\StringTok{ }\DecValTok{2}\OperatorTok{*}\NormalTok{t }\OperatorTok{+}\StringTok{ }\KeywordTok{rnorm}\NormalTok{(}\KeywordTok{length}\NormalTok{(t), }\DecValTok{0}\NormalTok{, }\DecValTok{10}\NormalTok{) }\OperatorTok{-}\StringTok{ }\NormalTok{(}\DecValTok{1} \OperatorTok{+}\StringTok{ }\DecValTok{2}\OperatorTok{*}\NormalTok{t)),}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Detrended series"}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"green"}
+\NormalTok{     )}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/detrend-1} \end{center}
+
+\subsubsection{Unit Roots}\label{unit-roots}
+
+A stochastic process has a unit root if 1 is the root of its
+characteristic equation. For example consider the following process:
+
+\[X_t = X_{t-1} + \epsilon_t\]
+
+It's characteristic equation is: \(x - 1 = 0\). It's clear that
+\(X_t - X_{t-1} = \epsilon_t\) is a stationary process.
+
+Note that for trend stationary series we \emph{detrended} to obtain a
+stationary series while for a unit root process, we
+\emph{first-differenced} to arrive at a stationary series. Random walks
+are examples of unit root processes.
+
+By repeated additions:
+
+\[X_T = X_0 + \sum_{t = 1}^T \epsilon_t\]
+
+Hence \(\mathbb{E}(X_T) = X_0 + \mathbb{E}(\epsilon_T) = X_0\); and
+\(\text{var}(X_T) = \text{var}(\sum_{t = 1}^T \epsilon_t) = T\cdot \sigma^2\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{cumsum}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{10}\NormalTok{)),}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{lwd =} \FloatTok{1.5}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"red"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Unit root process"}
+\NormalTok{     )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/unit_root-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{10}\NormalTok{),}
+     \DataTypeTok{type =} \StringTok{"l"}\NormalTok{,}
+     \DataTypeTok{col =} \StringTok{"blue"}\NormalTok{,}
+     \DataTypeTok{main =} \StringTok{"Differenced unit root process"}
+\NormalTok{     )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/unit_root-2} \end{center}
+
 \section{Distribution of Returns}\label{distribution-of-returns}
 
 \subsection{Summary Statistics of Empirical
 Returns}\label{summary-statistics-of-empirical-returns}
-
-min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -500,7 +623,7 @@ min, max, mean, median, mode, std, variance, iqr, skewness, kurtosis
                        \DataTypeTok{iqr =} \KeywordTok{IQR}\NormalTok{(vec, }\DataTypeTok{na.rm=}\NormalTok{T),}
                        \DataTypeTok{var =} \KeywordTok{var}\NormalTok{(vec, }\DataTypeTok{na.rm =}\NormalTok{T)}
 \NormalTok{                       ) }\OperatorTok{%>%}
-\StringTok{    }\KeywordTok{signif}\NormalTok{(., }\DataTypeTok{digits =} \DecValTok{2}\NormalTok{)}
+\StringTok{    }\KeywordTok{signif}\NormalTok{(., }\DataTypeTok{digits =} \DecValTok{2}\NormalTok{) }\CommentTok{#significant digits = 2}
   
   \KeywordTok{return}\NormalTok{(summ_stat_ind)}
 
@@ -528,6 +651,8 @@ Nikkei225 & -0.11 & 0.1 & 0.00014 & 0.00059 & 0.016 & 0.015 &
 0.00024\tabularnewline
 \bottomrule
 \end{longtable}
+
+skewness and kurtosis
 
 \subsection{Histograms for returns for each
 index}\label{histograms-for-returns-for-each-index}
@@ -603,9 +728,6 @@ financial markets display many striking regularities discussed in Cont
   returns tends to be higher during high volatility periods especially
   during market crashes.
 \end{enumerate}
-
-\subsubsection{Aggregated Time Series Summary
-Stats}\label{aggregated-time-series-summary-stats}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
