@@ -147,7 +147,7 @@ what can we say about the market conditions from its ups and downs?
 
 \begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/hypo_market_index-1} \end{center}
 
-The above series however generated via the command:
+The above series is, however generated via the command:
 \texttt{plot(cumsum(rnorm(10000,\ 0,\ 1))} which plots the cumulative
 sum of ten thousand standard normal realizations---a random walk!
 
@@ -477,7 +477,7 @@ We can do the same for the S\&P500 and the Nikkei225 series:
 
 One clearly sees that the index sequences have no trend now. It seems
 that the returns are fluctuating around a mean level 0. The fluctuations
-(volatility) around the mean are sometimes and sometimes low.
+(volatility) around the mean are sometimes high and sometimes low.
 
 \section{Stationarity of Time Series}\label{stationarity-of-time-series}
 
@@ -494,7 +494,7 @@ unconditional joint distribution does not change with time:
 \[F_X(x_1,\hdots,x_t)=F_X(x_{1+\delta},\hdots,x_{t+\delta})\]
 
 where \(F_X(\cdot)\) is the distribution for the process \(X_t\) and
-\(\Delta>0\).
+\(\delta>0\).
 
 In particular this implies that the mean and the variance (and other
 central moments) do not change with time.
@@ -553,11 +553,15 @@ subtracting \(\mu(t) = 1+2t\) from the series, to recover
      \DataTypeTok{main =} \StringTok{"Detrended series"}\NormalTok{,}
      \DataTypeTok{col =} \StringTok{"green"}
 \NormalTok{     )}
-\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/detrend-1} \end{center}
+
+Additionally trend stationary series are \emph{mean-reverting} which
+means that after encountering an exogenous shock they tend to revert to
+the fluctuations-around-the-mean behavior.
 
 \subsubsection{Unit Roots}\label{unit-roots}
 
@@ -606,10 +610,21 @@ Hence \(\mathbb{E}(X_T) = X_0 + \mathbb{E}(\epsilon_T) = X_0\); and
 
 \begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/unit_root-2} \end{center}
 
+Unit root processes are not mean reverting---an exogenous shock can
+permanently alter the behavior of the unit root process.
+
 \section{Distribution of Returns}\label{distribution-of-returns}
+
+Are all return values for the indices considered above equally likely to
+occur? If that is the case, the returns will be uniformly distributed. A
+quick glance at the figures however suggests that perhaps some other
+distribution ought to be considered.
 
 \subsection{Summary Statistics of Empirical
 Returns}\label{summary-statistics-of-empirical-returns}
+
+For the three indices and their return series considered above (the BSE
+Sensex, the S\&P500, the Nikkei225) we compute summary statistics below:
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -652,7 +667,13 @@ Nikkei225 & -0.11 & 0.1 & 0.00014 & 0.00059 & 0.016 & 0.015 &
 \bottomrule
 \end{longtable}
 
-skewness and kurtosis
+For all series, the medians are about 1.5--3 times the corresponding
+means. This suggests that there are significant negative outliers.
+
+In general though, a natural choice for modeling return distribution is
+the ubiquitous normal distribution. To check if it is a plausible
+candidate, we plot the empirical histogram of returns for all three
+series separately.
 
 \subsection{Histograms for returns for each
 index}\label{histograms-for-returns-for-each-index}
@@ -698,6 +719,164 @@ index}\label{histograms-for-returns-for-each-index}
 \end{Shaded}
 
 \begin{center}\includegraphics{FMC_T4_PhD_Fin_Time_Series_files/figure-latex/histograms-3} \end{center}
+
+The three histograms do resemble a normal density. All of them display
+the classic bell curve characteristics. However, merely eyeballing the
+data is not proof enough.
+
+\subsubsection{Skewness and Kurtosis}\label{skewness-and-kurtosis}
+
+One way to test if the data are normally distributed is to check their
+third and fourth central moments---the skewness and kurtosis. For normal
+random variables, the skewness must be 0 (the bell curve is unimodal and
+symmetric about its mean); and the kurtosis must be 3. If the data
+display substantial departures from such values there may be evidence of
+non-normality.
+
+Formally the skewness and kurtosis are defined as:
+
+\[s = \mathbb{E}(\frac{X-\mu}{\sigma})^3\]
+\[\kappa = \mathbb{E}(\frac{X-\mu}{\sigma})^4\]
+
+We compute the skewness and kurtosis of the return series for the three
+indices as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{skew <-}\StringTok{ }\KeywordTok{rbind}\NormalTok{(moments}\OperatorTok{::}\KeywordTok{skewness}\NormalTok{(ret_BSE, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+\NormalTok{              moments}\OperatorTok{::}\KeywordTok{skewness}\NormalTok{(ret_sp500, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+\NormalTok{              moments}\OperatorTok{::}\KeywordTok{skewness}\NormalTok{(ret_nikkei, }\DataTypeTok{na.rm =}\NormalTok{ T)}
+\NormalTok{              )}
+
+\NormalTok{kurt <-}\StringTok{ }\KeywordTok{rbind}\NormalTok{(moments}\OperatorTok{::}\KeywordTok{kurtosis}\NormalTok{(ret_BSE, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+\NormalTok{              moments}\OperatorTok{::}\KeywordTok{kurtosis}\NormalTok{(ret_sp500, }\DataTypeTok{na.rm =}\NormalTok{ T),}
+\NormalTok{              moments}\OperatorTok{::}\KeywordTok{kurtosis}\NormalTok{(ret_nikkei, }\DataTypeTok{na.rm =}\NormalTok{ T)}
+\NormalTok{              )}
+
+\NormalTok{table_skew_kurt <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{Skew =}\NormalTok{ skew, }
+                              \DataTypeTok{Kurt =}\NormalTok{ kurt,}
+                              \DataTypeTok{Excess_Kurt =}\NormalTok{ kurt}\OperatorTok{-}\DecValTok{3}
+\NormalTok{                              )}
+
+\NormalTok{knitr}\OperatorTok{::}\KeywordTok{kable}\NormalTok{(table_skew_kurt)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}rrr@{}}
+\toprule
+Skew & Kurt & Excess\_Kurt\tabularnewline
+\midrule
+\endhead
+0.0967129 & 12.870632 & 9.870632\tabularnewline
+-0.0938530 & 15.121463 & 12.121463\tabularnewline
+-0.6276185 & 9.691047 & 6.691047\tabularnewline
+\bottomrule
+\end{longtable}
+
+There is substantial evidence from the table above to suggest that the
+returns may be \emph{non-normal}. Formally however, we resort the
+\emph{Jarque-Bera Test} to confirm our hypothesis.
+
+\subsubsection{The Jarque-Bera Test for
+Normality}\label{the-jarque-bera-test-for-normality}
+
+There is a large literature that suggests two empirical regularities for
+asset returns:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Crashes occur more frequently than booms
+\item
+  Extreme events occur more frequently than suggested by normal
+  distributions
+\end{enumerate}
+
+The first outcome is consistent with a distribution displaying
+\emph{negative} skewness. The second outcome suggests \emph{excess
+kurtosis}.
+
+The Jarcque-Bera test is a moment based test that relis on the
+observation that for a normal random variable the skewness and excess
+kurtosis are both 0. The estimators for skewness and kurtosis are:
+\[\hat{s} = \frac{1}{T}\sum_{t=1}^T (\frac{x_t-\bar{x}}{\hat{\sigma}})^3\]
+\[\hat{\kappa} = \frac{1}{T}\sum_{t=1}^T (\frac{x_t-\bar{x}}{\hat{\sigma}})^4\]
+
+and as \(T\to \infty\)
+
+\[\sqrt T\cdot \hat{s} \to \mathcal{N}(0, 6)\]
+\[\sqrt T\cdot (\hat{\kappa}-3) \to \mathcal{N}(0, 24)\]
+
+Hence, for normal random variables
+
+\[\frac{\hat{s}}{\sqrt(\frac{6}{T})}\to \mathcal{N}(0,1)\]
+\[\frac{\hat{\kappa}-3}{\sqrt(\frac{24}{T})}\to \mathcal{N}(0,1)\]
+
+The Jarque-Bera test statistic uses the following insight:
+
+\[JB = T[\frac{\hat{s}^2}{6}+\frac{\hat{\kappa}-3}{24}]\to \chi^2(2)\]
+
+In order to test if the returns from the three indices do follow the
+normal distribution we employ the package \texttt{tseries} and the
+function \texttt{jarque.bera.test()} in it. Note that it disallows any
+\texttt{NA} values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tseries}\OperatorTok{::}\KeywordTok{jarque.bera.test}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{1000}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{10}\NormalTok{)) }\CommentTok{#benchmarking}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Jarque Bera Test
+## 
+## data:  rnorm(1000, 0, 10)
+## X-squared = 0.70629, df = 2, p-value = 0.7025
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tseries}\OperatorTok{::}\KeywordTok{jarque.bera.test}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(ret_BSE)) }\CommentTok{#note: !is.na()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Jarque Bera Test
+## 
+## data:  !is.na(ret_BSE)
+## X-squared = 3465300000, df = 2, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tseries}\OperatorTok{::}\KeywordTok{jarque.bera.test}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(ret_sp500))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Jarque Bera Test
+## 
+## data:  !is.na(ret_sp500)
+## X-squared = 14394, df = 2, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tseries}\OperatorTok{::}\KeywordTok{jarque.bera.test}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(ret_nikkei))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Jarque Bera Test
+## 
+## data:  !is.na(ret_nikkei)
+## X-squared = 5265.2, df = 2, p-value < 2.2e-16
+\end{verbatim}
 
 \section{Stylized Facts}\label{stylized-facts}
 

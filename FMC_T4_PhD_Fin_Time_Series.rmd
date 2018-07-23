@@ -37,6 +37,8 @@ nocite: |
 library(tidyverse)
 library(rmarkdown)
 library(knitr)
+library(moments) 
+library(tseries)
 
 knitr::opts_chunk$set(echo = T, 
                       warning = T, 
@@ -69,7 +71,7 @@ plot(cumsum(rnorm(10000, 0, 1)),
 
 ```
 
-The above series however generated via the command: `plot(cumsum(rnorm(10000, 0, 1))` which plots the cumulative sum of ten thousand standard normal realizations---a random walk! 
+The above series is, however generated via the command: `plot(cumsum(rnorm(10000, 0, 1))` which plots the cumulative sum of ten thousand standard normal realizations---a random walk! 
 
 The *random walk hypothesis* is a theory that claims that stock market prices obey a random walk process. This hypothesis is consistent with the "Efficient Market Hypothesis". Roughly speaking, the efficient market hypothesis claims in its weak form that for publicly traded stocks, all public information is captured in the price of the stock. The strong form of the hypothesis claims that *all* information---both public and private---is reflected the stock price. Hence according to this theory, any attempt to consistently beat the market in terms of risk-adjusted returns is doomed to failure.[^EMH]
 
@@ -331,7 +333,7 @@ abline(h = 0)
 
 ```
 
-One clearly sees that the index sequences have no trend now. It seems that the returns are fluctuating around a mean level 0. The fluctuations (volatility) around the mean are sometimes and sometimes low.
+One clearly sees that the index sequences have no trend now. It seems that the returns are fluctuating around a mean level 0. The fluctuations (volatility) around the mean are sometimes high and sometimes low.
 
 # Stationarity of Time Series
 
@@ -395,6 +397,8 @@ abline(h = 0)
 
 ```
 
+Additionally trend stationary series are *mean-reverting* which means that after encountering an exogenous shock they tend to revert to the fluctuations-around-the-mean behavior.
+
 ### Unit Roots
 
 A stochastic process has a unit root if 1 is the root of its characteristic equation. For example consider the following process:
@@ -429,15 +433,15 @@ plot(rnorm(1000, 0, 10),
 
 ```
 
-
-
-
-
-
+Unit root processes are not mean reverting---an exogenous shock can permanently alter the behavior of the unit root process.
 
 # Distribution of Returns
 
+Are all return values for the indices considered above equally likely to occur? If that is the case, the returns will be uniformly distributed. A quick glance at the figures however suggests that perhaps some other distribution ought to be considered.
+
 ## Summary Statistics of Empirical Returns
+
+For the three indices and their return series considered above (the BSE Sensex, the S\&P500, the Nikkei225) we compute summary statistics below:
 
 ```{r summ_stats}
 
@@ -468,7 +472,9 @@ knitr::kable(table_summ_stat)
 
 ```
 
-skewness and kurtosis
+For all series, the medians are about 1.5--3 times the corresponding means. This suggests that there are significant negative outliers.
+
+In general though, a natural choice for modeling return distribution is the ubiquitous normal distribution. To check if it is a plausible candidate, we plot the empirical histogram of returns for all three series separately.
 
 ## Histograms for returns for each index
 
@@ -500,7 +506,80 @@ hist(ret_nikkei,
 
 ```
 
+The three histograms do resemble a normal density. All of them display the classic bell curve characteristics. However, merely eyeballing the data is not proof enough. 
 
+### Skewness and Kurtosis
+
+One way to test if the data are normally distributed is to check their third and fourth central moments---the skewness and kurtosis. For normal random variables, the skewness must be 0 (the bell curve is unimodal and symmetric about its mean); and the kurtosis must be 3. If the data display substantial departures from such values there may be evidence of non-normality.
+
+Formally the skewness and kurtosis are defined as:
+
+\[s = \mathbb{E}(\frac{X-\mu}{\sigma})^3\]
+\[\kappa = \mathbb{E}(\frac{X-\mu}{\sigma})^4\]
+
+We compute the skewness and kurtosis of the return series for the three indices as follows:
+
+```{r skew_kurt}
+
+skew <- rbind(moments::skewness(ret_BSE, na.rm = T),
+              moments::skewness(ret_sp500, na.rm = T),
+              moments::skewness(ret_nikkei, na.rm = T)
+              )
+
+kurt <- rbind(moments::kurtosis(ret_BSE, na.rm = T),
+              moments::kurtosis(ret_sp500, na.rm = T),
+              moments::kurtosis(ret_nikkei, na.rm = T)
+              )
+
+table_skew_kurt <- data.frame(Skew = skew, 
+                              Kurt = kurt,
+                              Excess_Kurt = kurt-3
+                              )
+
+knitr::kable(table_skew_kurt)
+
+```
+
+There is substantial evidence from the table above to suggest that the returns may be *non-normal*. Formally however, we resort the *Jarque-Bera Test* to confirm our hypothesis.
+
+### The Jarque-Bera Test for Normality
+
+There is a large literature that suggests two empirical regularities for asset returns:
+
+1. Crashes occur more frequently than booms
+2. Extreme events occur more frequently than suggested by normal distributions
+
+The first outcome is consistent with a distribution displaying *negative* skewness. The second outcome suggests *excess kurtosis*.
+
+The Jarcque-Bera test is a moment based test that relis on the observation that for a normal random variable the skewness and excess kurtosis are both 0. The estimators for skewness and kurtosis are:
+\[\hat{s} = \frac{1}{T}\sum_{t=1}^T (\frac{x_t-\bar{x}}{\hat{\sigma}})^3\]
+\[\hat{\kappa} = \frac{1}{T}\sum_{t=1}^T (\frac{x_t-\bar{x}}{\hat{\sigma}})^4\]
+
+and as $T\to \infty$
+
+\[\sqrt T\cdot \hat{s} \to \mathcal{N}(0, 6)\]
+\[\sqrt T\cdot (\hat{\kappa}-3) \to \mathcal{N}(0, 24)\]
+
+Hence, for normal random variables
+
+\[\frac{\hat{s}}{\sqrt(\frac{6}{T})}\to \mathcal{N}(0,1)\]
+\[\frac{\hat{\kappa}-3}{\sqrt(\frac{24}{T})}\to \mathcal{N}(0,1)\]
+
+The Jarque-Bera test statistic uses the following insight:
+
+\[JB = T[\frac{\hat{s}^2}{6}+\frac{\hat{\kappa}-3}{24}]\to \chi^2(2)\]
+
+In order to test if the returns from the three indices do follow the normal distribution we employ the package `tseries` and the function `jarque.bera.test()` in it. Note that it disallows any `NA` values.
+
+```{r JB_test}
+
+tseries::jarque.bera.test(rnorm(1000, 0, 10)) #benchmarking
+
+tseries::jarque.bera.test(!is.na(ret_BSE)) #note: !is.na()
+tseries::jarque.bera.test(!is.na(ret_sp500))
+tseries::jarque.bera.test(!is.na(ret_nikkei))
+
+```
 
 # Stylized Facts
 
