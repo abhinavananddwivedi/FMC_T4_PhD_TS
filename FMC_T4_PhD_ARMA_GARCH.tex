@@ -126,7 +126,7 @@
   \postauthor{\par}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{2018/07/29}
+    \date{2018/07/30}
 
 \linespread{1.25}
 \usepackage{amsmath}
@@ -500,6 +500,10 @@ an MA(\(q\)) process, the ACF cuts off at lag \(q\). Since the MA(\(q\))
 process only relies on its past \(q-1\) realization, it's often called a
 `finite memory' process.
 
+To check the order of the MA series in question, we plot the ACF of the
+series. If \(\rho_q\neq 0\) but \(\rho_{l>q}=0\) we may conclude that
+the series is MA(\(q\)).
+
 \subsubsection{Illustrations}\label{illustrations}
 
 We simulate some moving average processes below:
@@ -509,7 +513,7 @@ We simulate some moving average processes below:
 \NormalTok{n <-}\StringTok{ }\DecValTok{500}
 
 \CommentTok{# MA(0)}
-\KeywordTok{plot}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(n))}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(n), }\DataTypeTok{type =} \StringTok{"l"}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
 \KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
@@ -549,10 +553,168 @@ We simulate some moving average processes below:
 
 \begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-4} \end{center}
 
+\section{Autoregressive Moving Average (ARMA)
+Processes}\label{autoregressive-moving-average-arma-processes}
+
+While in principle we could fit empirical time series to AR(\(p\)) or
+MA(\(q\)) models exclusively, often the concomitant order is very high.
+In order to circumevent this problem, we combine AR and MA models into a
+composite ARMA(\(p,q\)) model with fewer parameters to estimate.
+
+For example the ARMA(1,1) series is as follows:
+\[r_t-\phi_1r_{t-1} = \phi_0 + u_t -\theta_1u_{t-1}\]
+
+The LHS is the AR component while the RHS is MA component.
+
+\subsection{Properties}\label{properties}
+
+Taking expectations we get:
+\[\mathbb{E}(r_t)-\phi_1\mathbb{E}(r_{t-1}) = \phi_0 + \mathbb{E}(u_t) - \theta_1\mathbb{E}(u_{t-1})\]
+\[\mathbb{E}(r_t) = \mu = \frac{\phi_0}{1-\phi_1}\]
+
+This is the same exact mean as that of an AR(1) process. Solving for the
+stationarity of the variance we get the same condition for the parameter
+\(\phi_1\in (0,1)\) as that of the AR(1) model. It is not hard to derive
+the autocorrelation function of the ARMA(1,1) process which behaves the
+same way as that of an AR(1) process.
+
+In general for an ARMA(\(p, q\)) process we have the following
+definition:
+
+\[r_t = \phi_0 + \sum_{i=1}^p \phi_ir_{t-i}+u_t-\sum_{j=1}^q \theta_ju_{t-j}\]
+
+\section{Conditional Heteroskedasticity
+Models}\label{conditional-heteroskedasticity-models}
+
+In empirical time series, we do not observe volatility directly but only
+estimate it with the help of some other directly observed
+characteristics. However as discussed in Cont (2001) volatility displays
+some striking regularities such as volatility clustering and
+differential reaction to price changes.
+
+To investigate the volatility of empirical time series, we plot the
+daily returns and ACF of the Bombay stock exchange sensex.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(logret_BSE, }\DataTypeTok{type =} \StringTok{"l"}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_ret_ACF-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{acf}\NormalTok{(ret_BSE, }\DataTypeTok{na.action =}\NormalTok{ na.pass))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_ret_ACF-2} \end{center}
+
+While there seems to be no serial autocorrelation there is some
+dependence structure embedded in the series. We can check this for
+various functions of the return process such as squared returns or
+absolute returns:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ret_BSE_sq <-}\StringTok{ }\NormalTok{ret_BSE}\OperatorTok{^}\DecValTok{2}
+\KeywordTok{acf}\NormalTok{(ret_BSE_sq, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_ret_ACF_sq-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_BSE_sq, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_ret_ACF_sq-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ret_BSE_abs <-}\StringTok{ }\KeywordTok{abs}\NormalTok{(ret_BSE)}
+\KeywordTok{acf}\NormalTok{(ret_BSE_abs, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_ret_ACF_sq-3} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_BSE_abs, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_ret_ACF_sq-4} \end{center}
+
+This behavior is also displayed by the other financial markets.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{acf}\NormalTok{(ret_sp500}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ret_ind_ACF_sq-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_sp500}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ret_ind_ACF_sq-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{acf}\NormalTok{(ret_nikkei}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ret_ind_ACF_sq-3} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_nikkei}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ret_ind_ACF_sq-4} \end{center}
+
+The conditional mean volatility of the series may be written as:
+
+\[\mu_t = \mathbb{E}(r_t|\mathbb{F}_{t-1})\]
+\[\sigma_t^2 = \text{var}(r_t|\mathbb{F}_{t-1}) = \mathbb{E}((r_t-\mu_t)^2|\mathbb{F}_{t-1})
+=\text{var}(u_t|\mathbb{F}_{t-1})\]
+
+Here \(\mathbb{F}(\cdot)\) denotes the `filtration' or the information
+available at the given time.
+
+\subsection{ARCH Effect}\label{arch-effect}
+
+Consider \(r_t = \mu_t + u_t\). The square of the residual series
+\(u_t = r_t - \mu_t\) is of interest for estimating conditional
+heteroskedasticity, also known as the ARCH effect (autoregressive
+conditional heteroskedasticity effect). A popular method of testing for
+ARCH effects is via Engel's Lagrange multiplier test which is equivalent
+to the standard \(F\) statistic for testing \(\beta_i=0\) in the
+multiple linear regression:
+
+\[u_t^2 = \beta_0 + \beta_1u_{t-1}^2 + \hdots + \beta_m u_{t-m}^2 + \epsilon_t \]
+
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
 
 \hypertarget{refs}{}
+\hypertarget{ref-Cont:2001}{}
+Cont, Rama. 2001. ``Empirical Properties of Asset Returns: Stylized
+Facts and Statistical Issues.'' \emph{Quantitative Finance} 1 (2):
+223--36.
+
 \hypertarget{ref-Jondeau_Poon_Rockinger:2007}{}
 Jondeau, Eric, Ser-Huang Poon, and Michael Rockinger. 2007.
 \emph{Financial Modeling Under Non-Gaussian Distributions}. Springer

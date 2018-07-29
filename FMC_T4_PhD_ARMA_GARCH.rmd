@@ -318,7 +318,9 @@ Also, $\text{var}(r_t) =\gamma_0= (1+\theta_1^2)\sigma_u^2$ and this implies tha
 \[\rho_1 = -\frac{\theta_1}{1+\theta_1^2}\]
 \[\rho_{l>1} = 0\]
 
-Hence for MA(1) processes, while the first lag autocorrelation is nonzero, all further lags produce zero autocorrelation. This property can be exploited to locate the order of the MA process. In general, for an MA($q$) process, the ACF cuts off at lag $q$. Since the MA($q$) process only relies on its past $q-1$ realization, it's often called a 'finite memory' process.
+Hence for MA(1) processes, while the first lag autocorrelation is nonzero, all further lags produce zero autocorrelation. This property can be exploited to locate the order of the MA process. In general, for an MA($q$) process, the ACF cuts off at lag $q$. Since the MA($q$) process only relies on its past $q-1$ realization, it's often called a 'finite memory' process. 
+
+To check the order of the MA series in question, we plot the ACF of the series. If $\rho_q\neq 0$ but $\rho_{l>q}=0$ we may conclude that the series is MA($q$).
 
 ### Illustrations
 
@@ -347,6 +349,86 @@ abline(h = 0)
 
 
 ```
+
+# Autoregressive Moving Average (ARMA) Processes
+
+While in principle we could fit empirical time series to AR($p$) or MA($q$) models exclusively, often the concomitant order is very high. In order to circumevent this problem, we combine AR and MA models into a composite ARMA($p,q$) model with fewer parameters to estimate.
+
+For example the ARMA(1,1) series is as follows:
+\[r_t-\phi_1r_{t-1} = \phi_0 + u_t -\theta_1u_{t-1}\]
+
+The LHS is the AR component while the RHS is MA component.
+
+## Properties
+
+Taking expectations we get:
+\[\mathbb{E}(r_t)-\phi_1\mathbb{E}(r_{t-1}) = \phi_0 + \mathbb{E}(u_t) - \theta_1\mathbb{E}(u_{t-1})\]
+\[\mathbb{E}(r_t) = \mu = \frac{\phi_0}{1-\phi_1}\]
+
+This is the same exact mean as that of an AR(1) process. Solving for the stationarity of the variance we get the same condition for the parameter $\phi_1\in (0,1)$ as that of the AR(1) model. It is not hard to derive the autocorrelation function of the ARMA(1,1) process which behaves the same way as that of an AR(1) process. 
+
+In general for an ARMA($p, q$) process we have the following definition:
+
+\[r_t = \phi_0 + \sum_{i=1}^p \phi_ir_{t-i}+u_t-\sum_{j=1}^q \theta_ju_{t-j}\]
+
+# Conditional Heteroskedasticity Models
+
+In empirical time series, we do not observe volatility directly but only estimate it with the help of some other directly observed characteristics. However as discussed in @Cont:2001 volatility displays some striking regularities such as volatility clustering and differential reaction to price changes.
+
+To investigate the volatility of empirical time series, we plot the daily returns and ACF of the Bombay stock exchange sensex.
+
+```{r BSE_ret_ACF}
+
+plot(logret_BSE, type = "l", col = "blue")
+abline(h = 0)
+
+plot(acf(ret_BSE, na.action = na.pass))
+
+```
+
+While there seems to be no serial autocorrelation there is some dependence structure embedded in the series. We can check this for various functions of the return process such as squared returns or absolute returns:
+
+```{r BSE_ret_ACF_sq}
+
+ret_BSE_sq <- ret_BSE^2
+acf(ret_BSE_sq, na.action = na.pass)
+pacf(ret_BSE_sq, na.action = na.pass)
+
+ret_BSE_abs <- abs(ret_BSE)
+acf(ret_BSE_abs, na.action = na.pass)
+pacf(ret_BSE_abs, na.action = na.pass)
+
+```
+
+This behavior is also displayed by the other financial markets.
+
+```{r ret_ind_ACF_sq}
+
+acf(ret_sp500^2, na.action = na.pass)
+pacf(ret_sp500^2, na.action = na.pass)
+
+acf(ret_nikkei^2, na.action = na.pass)
+pacf(ret_nikkei^2, na.action = na.pass)
+
+
+
+```
+
+The conditional mean volatility of the series may be written as:
+
+\[\mu_t = \mathbb{E}(r_t|\mathbb{F}_{t-1})\]
+\[\sigma_t^2 = \text{var}(r_t|\mathbb{F}_{t-1}) = \mathbb{E}((r_t-\mu_t)^2|\mathbb{F}_{t-1})
+=\text{var}(u_t|\mathbb{F}_{t-1})\]
+
+Here $\mathbb{F}(\cdot)$ denotes the 'filtration' or the information available at the given time. 
+
+## ARCH Effect
+
+Consider $r_t = \mu_t + u_t$. The square of the residual series $u_t = r_t - \mu_t$ is of interest for estimating conditional heteroskedasticity, also known as the ARCH effect (autoregressive conditional heteroskedasticity effect). A popular method of testing for ARCH effects is via Engel's Lagrange multiplier test which is equivalent to the standard $F$ statistic for testing $\beta_i=0$ in the multiple linear regression:
+
+\[u_t^2 = \beta_0 + \beta_1u_{t-1}^2 + \hdots + \beta_m u_{t-m}^2 + \epsilon_t \]
+
+The null hypothesis is $H_0:\beta_1=\beta_2=\hdots=\beta_m=0$.
 
 
 
