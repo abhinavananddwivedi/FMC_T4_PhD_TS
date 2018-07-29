@@ -1,0 +1,282 @@
+---
+title: "ARMA GARCH Processes"
+author: Abhinav Anand, IIMB
+date: '`r format(Sys.time(), "%Y/%m/%d")`' #current date
+
+output:
+  pdf_document:
+    keep_tex: true
+
+fontsize: 11pt
+documentclass: article
+geometry: margin = 1.5in
+
+linkcolor: blue
+urlcolor: red
+citecolor: magenta
+
+citation_package: natbib
+bibliography: Working_Paper.bib
+
+header-includes:
+   - \linespread{1.25}
+   - \usepackage{amsmath}
+
+
+---
+
+
+---
+nocite: |
+  @Tsay:2010
+  @Jondeau_Poon_Rockinger:2007
+...
+
+```{r setup, eval=T, message=FALSE, warning=F, include=FALSE}
+
+library(tidyverse)
+library(rmarkdown)
+library(knitr)
+library(moments) 
+library(tseries)
+
+knitr::opts_chunk$set(echo = T, 
+                      warning = T, 
+                      message = F, 
+                      eval = T, 
+                      include = T,
+                      fig.height=3.5, 
+                      fig.width=3.5,
+                      fig.align = 'center'
+                      )
+
+### Old Time Series code to be recycled here ###
+file_bse <- "SENSEX.csv" 
+index_bse <- readr::read_csv(file_bse) %>%
+  dplyr::select(-empty)
+index_bse$Date <- as.Date(index_bse$Date, 
+                          format = "%d-%B-%Y"
+                          ) #date reformat
+
+file_sp500 <- "SP500.csv" #S&P 500
+ind_sp500 <- readr::read_csv(file_sp500, 
+                             col_types = cols(DATE = col_date(), 
+                                              SP500 = col_double()
+                                              ),
+                             na = c("", "NA", ".")
+                             )
+
+file_nikkei <- "NIKKEI225.csv" #Nikkei 225
+ind_nikkei <- readr::read_csv(file_nikkei, 
+                             col_types = cols(DATE = col_date(), 
+                                              NIKKEI225 = col_double()
+                                              ),
+                             na = c("", "NA", ".")
+                             )
+
+func_pr_to_ret <- function(price_vec)
+{
+  # This function takes a vector of prices and 
+  # returns a vector of simple one period returns
+  l <- length(price_vec) 
+  ret_num <- diff(price_vec) #numerator = change in prices
+  ret_den <- price_vec[-l] #denominator = price series
+  
+  return(c(NA, ret_num/ret_den)) #first return is NA
+}
+
+func_pr_to_logret <- function(p_vec)
+{
+  # This function takes a vector of prices and 
+  # returns a vector of log returns
+  log_price <- log(p_vec)
+  log_ret <- diff(log_price) #log ret = delta log p
+  
+  return(c(NA, log_ret)) #first return is NA
+}
+
+ret_BSE <- func_pr_to_ret(index_bse$Close)
+ret_sp500 <- func_pr_to_ret(ind_sp500$SP500)
+ret_nikkei <- func_pr_to_ret(ind_nikkei$NIKKEI225)
+
+###
+
+```
+
+# The Autocorrelation Function (ACF)
+
+The correlation between random variables $X_1, X_2$ is a measure of their linear dependence and is defined as:
+\[\rho_{12}:= \frac{\text{cov}(X_1,X_2)}{\sqrt{\text{var}(X_1)\text{var}(X_2)}}=\frac{\sigma_{12}}{\sigma_1\sigma_2}\]
+
+It lies between -1 and 1 and for normal random variables $\rho_{12}=0$ implies that the variables are independent.
+
+If we have a sample $\{x_{1,t}, x_{2,t}\}_{t=1}^T$ the correlation can be consistently estimated by computing sample correlation:
+\[\hat{\rho}_{12}=\frac{\hat{\sigma}_{12}}{\hat{\sigma_1}\hat{\sigma_2}}\]
+
+For a time series $r_t$ which is weakly stationary, the lag-$l$ autocorrelation function is the correlation between $r_t$ and $r_{t-l}$:
+
+\[\rho_l=\frac{\sigma_{t,t-l}}{\sigma_t\sigma_{t-l}}=\frac{\sigma_{t,t-l}}{\sigma_t^2}
+=\frac{\gamma_l}{\gamma_0}\]
+
+This follows from weak stationarity: $\sigma^2_t=\sigma^2_{t-l}=\gamma_0$ and 
+$\text{cov}(r_t,r_{t-l})=\gamma_l$. 
+
+We claim that there is no autocorrelation if $\rho_l=0$ $\forall l>0$.
+
+To estimate the autocorrelation function of lag (say) 1, we use its sample counterpart:
+
+\[\hat{\rho}_1=\frac{\sum_{t=2}^T (r_t-\bar{r})(r_{t-1}-\bar{r})}{\sum_{t=1}^T (r_t-\bar{r})^2}\]
+
+In general for lag $l$ we consistently estimate it as:
+\[\hat{\rho}_l=\frac{\sum_{t=l+1}^T (r_t-\bar{r})(r_{t-1}-\bar{r})}{\sum_{t=1}^T (r_t-\bar{r})^2}\]
+
+The statistic $\hat{\rho_1},\hat{\rho_2},\hdots$ is the *sample autocorrelation function* of $r_t$ and is key to capturing the linear dependence nature of the time series in question. 
+
+# Autoregressive (AR) Processes 
+
+Perhaps last period's returns may have some significant impact on the value of the returns this period.  If so, its lag-1 autocorrelation may be useful for predicting the current period's value:
+
+\[r_t = \phi_0+\phi_1r_{t-1}+u_t\]
+
+where $u_t$ is weakly stationary with mean 0 and variance $\sigma^2_u$. This is simply equivalent to a regression where $r_{t-1}$ is the explanatory or independent variable.
+
+It's straightforward to check the conditional mean and variance of such a process:
+
+\[\mathbb{E}(r_t|r_{t-1}) = \phi_0+\phi_1r_{t-1}\]
+\[\text{var}(r_t|r_{t-1}) = \sigma_u^2\]
+
+And more generally there could be defined autoregressive processes of order $p$ ($AR(p)$):
+
+\[r_t=\phi_0+\phi_1r_{t-1}+\hdots+\phi_pr_{t-p} + u_t\]
+
+## AR(1) processes
+
+Is the AR(1) process $r_t=\phi_0+\phi_1r_{t-1}+u_t$ weakly stationary? This will imply that its unconditional mean and variance must be fixed in time and lag-$l$ covariance must depend only on the lag length $l$.
+
+\[\mathbb{E}(r_t) = \phi_0 + \phi_1\mathbb{E}(r_{t-1})+\mathbb{E}(u_t)\]
+\[\mathbb{E}(r_t) = \phi_0 + \phi_1\mu\]
+\[\mu = \frac{\phi_0}{1-\phi_1}\]
+
+This clearly implies that for the mean of an AR(1) process to exist, $\phi_1\neq 1$ and $\phi_0=\mu\cdot(1-\phi_1)=\mu-\mu\phi_1$.
+
+Hence a weakly stationary AR(1) process is:
+\[r_t=\mu-\mu\phi_1+\phi_1r_{t-1}+u_t\]
+\[r_t-\mu=(r_{t-1}-\mu)\phi_1+u_t\]
+\[r_t-\mu=((r_{t-2}-\mu)\phi_2+u_{t-1})\phi_1+u_t\]
+\[\vdots\]
+\[r_t-\mu = u_t + \phi_1u_{t-1}+\phi_1^2u_{t-2}+\hdots\]
+\[r_t=\mu+\sum_{i=0}^\infty\phi_1^i\cdot u_{t-i}\]
+
+Additionally,
+
+\[\text{var}(r_t)=\phi_1^2\text{var}(r_{t-1})+\sigma^2_u\]
+
+Since for weakly stationary AR(1) processes $\text{var}(r_t)=\text{var}(r_{t-1})=\gamma_0$ we have
+\[\gamma_0 = \frac{\sigma_u^2}{1-\phi_1^2}\]
+
+Weak stationarity immediately implies that $\phi_1\in(-1,1)$.
+
+Hence taken together, for an AR(1) process to be weakly stationary it is necessary and sufficient that $\phi_1\in[-1,1]$; and the canonical AR(1) series can be written as:
+\[r_t=(1-\phi_1)\mu+\phi_1r_{t-1}+u_t\]
+
+### Autocorrelation Function for AR(1) processes
+
+We can easily check that for positive lags $l>0$, the lagged covariance follows:
+
+\[\gamma_l = \phi_1\gamma_{l-1}\]
+
+Hence it follows that for the autocorrelation function $\rho_l = \phi_1\rho_{l-1}$; and becasue $\rho_0=1$, $\rho_l = \phi_1^l$. This implies that the autocorrelation function of an AR(1) series decays exponentially with rate $\phi_1$ and starting value 1. If $phi_1<0$ the series alternates between positive and negative terms.
+
+**Illustration**
+
+For example let's compute the sample autocorrelation function (ACF) for the financial market indices.
+
+```{r sample_ACF}
+
+acf(ret_BSE, na.action = na.pass)
+acf(ret_sp500, na.action = na.pass)
+acf(ret_nikkei, na.action = na.pass)
+
+
+```
+
+What about log-returns?
+
+```{r sample_ACF_logret}
+
+logret_BSE <- func_pr_to_logret(index_bse$Close)
+logret_SP <- func_pr_to_logret(ind_sp500$SP500)
+logret_Nikkei <- func_pr_to_logret(ind_nikkei$NIKKEI225)
+
+ACF_BSE <- acf(logret_BSE, na.action = na.pass)
+barplot(head(ACF_BSE$acf))
+
+ACF_SP <- acf(logret_SP, na.action = na.pass)
+barplot(head(ACF_SP$acf))
+
+ACF_Nikkei <- acf(logret_Nikkei, na.action = na.pass)
+barplot(head(ACF_Nikkei$acf))
+
+
+
+
+```
+
+### Partial Autocorrelation Functions (PACF)
+
+Is there a way to know how many lags to include for an autoregressive return series? This issue is solved via the usage of *partial autocorrelation functions* as shown below.
+
+Consider the following sequences of AR processes:
+
+\[r_t=\phi_{01}+ \phi_{11}r_{t-1}+u_{1t}\]
+\[r_t=\phi_{02}+ \phi_{12}r_{t-1}+\phi_{22}r_{t-2}+u_{2t}\]
+\[r_t=\phi_{03}+ \phi_{13}r_{t-1}+\phi_{23}r_{t-2}+\phi_{33}r_{t-3}+u_{3t}\]
+\[r_t=\phi_{04}+ \phi_{14}r_{t-1}+\phi_{24}r_{t-2}+\phi_{34}r_{t-3}+\phi_{44}r_{t-4}+u_{4t}\]
+\[\vdots\]
+
+These models are merely multiple regressions and can be estimated via the standard least squares method.
+
+In these models, $\hat{\phi}_{11}$ is called the lag 1 sample PACF of $r_t$, $\hat{\phi}_{22}$ of the second equation is the lag 2 sample PACF of $r_t$ and so on. By construction, the lag 2 $\hat{\phi}_{22}$ is the marginal contribution of $r_{t-2}$ in explaining $r_t$ over the AR(1) model and so on. Hence if the underlying model is say AR($p$) then all sample PACFs $\hat{\phi}_{11},\hdots, \hat{\phi}_{pp}$ must be different from 0 but all sample PACFs from then on: $\hat{\phi}_{p+1,p+1}, \hdots=0$. This property can be used to find the order $p$.
+
+Armed with this knowledge, let's compute the PACFs for the three financial market indices:
+
+```{r PACF}
+
+pacf(ret_BSE, na.action = na.pass)
+pacf(ret_sp500, na.action = na.pass)
+pacf(ret_nikkei, na.action = na.pass)
+
+```
+
+### Information Criteria
+
+Apart from PACF, another way to find the number of lags is the use of likelihood based information criteria. Here we look at the two most famous ones: the Akaike Information Criterion (AIC) and the Bayesian Information Criterion (BIC).
+
+\[\text{AIC}(l) = -\frac{2}{T}\cdot\ln(\text{likelihood})+\frac{2}{T}\cdot(\#\text{parameters})\]
+
+Hence for a Gaussian AR($l$), $AIC=\ln(\hat{\sigma}^2_{u,MLE})+2\frac{l}{T}$. The first term measures the good ness of fit of the model while the second penalizes the usage of parameters. 
+
+The Bayesian Information Criterion (BIC) uses a different penalty function. For a Gaussian AR($l$) is takes the following form:
+
+\[BIC(l)=\ln(\hat{\sigma}^2_{u,MLE})+\ln(T)\cdot \frac{l}{T}\]
+
+# Moving Average (MA) Processes
+
+Consider an infinitely long autoregressive process:
+
+\[r_t = \phi_0+\phi_1r_{t-1}+\phi_2r_{r-2}+\hdots+u_t\]
+
+If this series is to be weakly stationary, the coefficients $\phi_j$ must decay sufficiently fast. One way to ensure this is to assume that $\phi_j=-\theta^j$ for some $\theta\in(0,1)$.
+\[r_t = \phi_0-\theta_1r_{t-1}-\theta_1^2r_{t-2}-\hdots+u_t\]
+\[r_t+\sum_{j=1}^\infty \theta_1^jr_{t-j}=\phi_0+u_t\]
+The same form can be written for $r_{t-2}$:
+\[r_{t-1}+\sum_{j=2}^\infty \theta_1^jr_{t-j}=\phi_0+u_{t-1}\]
+
+Solving for the above two equations, we get:
+\[r_t = \phi_0(1-\theta_1) + u_t -\theta_1u_{t-1}\]
+
+This indicates the AR model is a weighted average of shocks $u_t, u_{t-1}$ and a constant. This is a *moving average* form of order 1 or MA(1).
+
+
+
+# References
