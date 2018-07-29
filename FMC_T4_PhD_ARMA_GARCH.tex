@@ -482,6 +482,73 @@ The general form for the MA(\(q\)) process is:
 
 \subsection{Autocorrelation Function}\label{autocorrelation-function}
 
+Consider the MA(1) model with the constant term 0:
+
+\[r_{t} = u_t -\theta_1u_{t-1}\]
+\[r_{t-l}r_t = u_tr_{t-l} -\theta_1u_{t-1}r_{t-l}\]
+\[\mathbb{E}(r_{t-l}r_t)=0-\theta_1\mathbb{E}(u_{t-1}r_{t-l})\] From
+this we see that: \[\gamma_1=-\theta_1\sigma^2_u\] \[\gamma_{l>1}=0\]
+Also, \(\text{var}(r_t) =\gamma_0= (1+\theta_1^2)\sigma_u^2\) and this
+implies that for \(\rho_l = \frac{\gamma_l}{\gamma_0}\) becomes:
+\[\rho_0 = 1\] \[\rho_1 = -\frac{\theta_1}{1+\theta_1^2}\]
+\[\rho_{l>1} = 0\]
+
+Hence for MA(1) processes, while the first lag autocorrelation is
+nonzero, all further lags produce zero autocorrelation. This property
+can be exploited to locate the order of the MA process. In general, for
+an MA(\(q\)) process, the ACF cuts off at lag \(q\). Since the MA(\(q\))
+process only relies on its past \(q-1\) realization, it's often called a
+`finite memory' process.
+
+\subsubsection{Illustrations}\label{illustrations}
+
+We simulate some moving average processes below:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n <-}\StringTok{ }\DecValTok{500}
+
+\CommentTok{# MA(0)}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(n))}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# MA(1)}
+\NormalTok{ma_}\DecValTok{1}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =}\NormalTok{ n, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ma =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{)), }\DataTypeTok{innov=}\KeywordTok{rnorm}\NormalTok{(n))}
+\KeywordTok{plot}\NormalTok{(ma_}\DecValTok{1}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# MA(2)}
+\NormalTok{ma_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =}\NormalTok{ n, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ma =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{, }\FloatTok{0.15}\NormalTok{)), }\DataTypeTok{innov=}\KeywordTok{rnorm}\NormalTok{(n))}
+\KeywordTok{plot}\NormalTok{(ma_}\DecValTok{2}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-3} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# MA(3)}
+\NormalTok{ma_}\DecValTok{3}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =}\NormalTok{ n, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ma =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\FloatTok{0.3}\NormalTok{, }\FloatTok{0.15}\NormalTok{)), }\DataTypeTok{innov=}\KeywordTok{rnorm}\NormalTok{(n))}
+\KeywordTok{plot}\NormalTok{(ma_}\DecValTok{3}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-4} \end{center}
+
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
 

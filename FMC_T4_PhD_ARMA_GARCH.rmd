@@ -305,7 +305,48 @@ The general form for the MA($q$) process is:
 
 ## Autocorrelation Function
 
+Consider the MA(1) model with the constant term 0:
 
+\[r_{t} = u_t -\theta_1u_{t-1}\]
+\[r_{t-l}r_t = u_tr_{t-l} -\theta_1u_{t-1}r_{t-l}\]
+\[\mathbb{E}(r_{t-l}r_t)=0-\theta_1\mathbb{E}(u_{t-1}r_{t-l})\]
+From this we see that:
+\[\gamma_1=-\theta_1\sigma^2_u\] 
+\[\gamma_{l>1}=0\]
+Also, $\text{var}(r_t) =\gamma_0= (1+\theta_1^2)\sigma_u^2$ and this implies that for $\rho_l = \frac{\gamma_l}{\gamma_0}$ becomes:
+\[\rho_0 = 1\]
+\[\rho_1 = -\frac{\theta_1}{1+\theta_1^2}\]
+\[\rho_{l>1} = 0\]
+
+Hence for MA(1) processes, while the first lag autocorrelation is nonzero, all further lags produce zero autocorrelation. This property can be exploited to locate the order of the MA process. In general, for an MA($q$) process, the ACF cuts off at lag $q$. Since the MA($q$) process only relies on its past $q-1$ realization, it's often called a 'finite memory' process.
+
+### Illustrations
+
+We simulate some moving average processes below:
+
+```{r MA}
+
+n <- 500
+
+# MA(0)
+plot(rnorm(n), type = "l", col = "blue")
+abline(h = 0)
+# MA(1)
+ma_1 <- arima.sim(n = n, list(ma = c(0.8)), innov=rnorm(n))
+plot(ma_1, col = "blue")
+abline(h = 0)
+# MA(2)
+ma_2 <- arima.sim(n = n, list(ma = c(0.8, 0.15)), innov=rnorm(n))
+plot(ma_2, col = "blue")
+abline(h = 0)
+# MA(3)
+ma_3 <- arima.sim(n = n, list(ma = c(0.5, 0.3, 0.15)), innov=rnorm(n))
+plot(ma_3, col = "blue")
+abline(h = 0)
+
+
+
+```
 
 
 
