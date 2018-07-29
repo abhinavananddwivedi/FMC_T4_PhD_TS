@@ -146,7 +146,7 @@ implies that the variables are independent.
 
 If we have a sample \(\{x_{1,t}, x_{2,t}\}_{t=1}^T\) the correlation can
 be consistently estimated by computing sample correlation:
-\[\hat{\rho}_{12}=\frac{\hat{\sigma}_{12}}{\hat{\sigma_1}\hat{\sigma_2}}\]
+\[\hat{\rho}_{12}=\frac{\hat{\sigma}_{12}}{\hat{\sigma}_1\hat{\sigma}_2}\]
 
 For a time series \(r_t\) which is weakly stationary, the lag-\(l\)
 autocorrelation function is the correlation between \(r_t\) and
@@ -230,8 +230,57 @@ Since for weakly stationary AR(1) processes
 Weak stationarity immediately implies that \(\phi_1\in(-1,1)\).
 
 Hence taken together, for an AR(1) process to be weakly stationary it is
-necessary and sufficient that \(\phi_1\in[-1,1]\); and the canonical
-AR(1) series can be written as: \[r_t=(1-\phi_1)\mu+\phi_1r_{t-1}+u_t\]
+necessary and sufficient that \(\phi_1\in(-1,1)\);\footnote{For a
+  general AR(\(p\)) process, the corresponding condition is:
+  \(|\phi_1|+|\phi_2|+\hdots+|\phi_p|<1\).} and the canonical AR(1)
+series can be written as: \[r_t=(1-\phi_1)\mu+\phi_1r_{t-1}+u_t\]
+
+We can plot some hypothetical autoregressive processes by simulation via
+the function \texttt{arima.sim()} include in the \texttt{stats} package
+that loads by default.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# AR(0)}
+\KeywordTok{plot}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{500}\NormalTok{, }\DecValTok{0}\NormalTok{, }\FloatTok{0.8}\NormalTok{), }\DataTypeTok{type =} \StringTok{"l"}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/arima_sim-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# AR(1)}
+\NormalTok{ar_}\DecValTok{1}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =} \DecValTok{500}\NormalTok{, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ar =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{)), }\DataTypeTok{sd =} \FloatTok{0.8}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(ar_}\DecValTok{1}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/arima_sim-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# AR(2)}
+\NormalTok{ar_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =} \DecValTok{500}\NormalTok{, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ar =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{, }\FloatTok{0.15}\NormalTok{)), }\DataTypeTok{sd =} \FloatTok{0.8}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(ar_}\DecValTok{2}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/arima_sim-3} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# AR(3)}
+\NormalTok{ar_}\DecValTok{3}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =} \DecValTok{500}\NormalTok{, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ar =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\FloatTok{0.3}\NormalTok{, }\FloatTok{0.15}\NormalTok{)), }\DataTypeTok{sd =} \FloatTok{0.8}\NormalTok{)}
+\KeywordTok{plot}\NormalTok{(ar_}\DecValTok{3}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/arima_sim-4} \end{center}
 
 \subsubsection{Autocorrelation Function for AR(1)
 processes}\label{autocorrelation-function-for-ar1-processes}
@@ -245,7 +294,7 @@ Hence it follows that for the autocorrelation function
 \(\rho_l = \phi_1\rho_{l-1}\); and becasue \(\rho_0=1\),
 \(\rho_l = \phi_1^l\). This implies that the autocorrelation function of
 an AR(1) series decays exponentially with rate \(\phi_1\) and starting
-value 1. If \(phi_1<0\) the series alternates between positive and
+value 1. If \(\phi_1<0\) the series alternates between positive and
 negative terms.
 
 \textbf{Illustration}
@@ -395,10 +444,10 @@ Information Criterion (BIC).
 
 \[\text{AIC}(l) = -\frac{2}{T}\cdot\ln(\text{likelihood})+\frac{2}{T}\cdot(\#\text{parameters})\]
 
-Hence for a Gaussian AR(\(l\)),
+For a Gaussian AR(\(l\)),
 \(AIC=\ln(\hat{\sigma}^2_{u,MLE})+2\frac{l}{T}\). The first term
-measures the good ness of fit of the model while the second penalizes
-the usage of parameters.
+measures the goodness of fit of the model while the second penalizes the
+usage of parameters.
 
 The Bayesian Information Criterion (BIC) uses a different penalty
 function. For a Gaussian AR(\(l\)) is takes the following form:
@@ -419,6 +468,19 @@ must decay sufficiently fast. One way to ensure this is to assume that
 \[r_t+\sum_{j=1}^\infty \theta_1^jr_{t-j}=\phi_0+u_t\] The same form can
 be written for \(r_{t-2}\):
 \[r_{t-1}+\sum_{j=2}^\infty \theta_1^jr_{t-j}=\phi_0+u_{t-1}\]
+
+Solving for the above two equations, we get:
+\[r_t = \phi_0(1-\theta_1) + u_t -\theta_1u_{t-1}\]
+
+This indicates the AR model is a weighted average of shocks
+\(u_t, u_{t-1}\) and a constant. This is a \emph{moving average} form of
+order 1 or MA(1). It's straightforward to check that unlike AR
+processes, MA processes are \emph{always} stationary. (Can you see why?)
+
+The general form for the MA(\(q\)) process is:
+\[r_t = c_0 + u_t -\theta_1u_{t-1}-\theta_2u_{t-2}-\hdots-\theta_qu_{t-q}\]
+
+\subsection{Autocorrelation Function}\label{autocorrelation-function}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
