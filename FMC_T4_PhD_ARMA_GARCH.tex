@@ -236,7 +236,7 @@ necessary and sufficient that \(\phi_1\in(-1,1)\);\footnote{For a
 series can be written as: \[r_t=(1-\phi_1)\mu+\phi_1r_{t-1}+u_t\]
 
 We can plot some hypothetical autoregressive processes by simulation via
-the function \texttt{arima.sim()} include in the \texttt{stats} package
+the function \texttt{arima.sim()} included in the \texttt{stats} package
 that loads by default.
 
 \begin{Shaded}
@@ -291,7 +291,7 @@ covariance follows:
 \[\gamma_l = \phi_1\gamma_{l-1}\]
 
 Hence it follows that for the autocorrelation function
-\(\rho_l = \phi_1\rho_{l-1}\); and becasue \(\rho_0=1\),
+\(\rho_l = \phi_1\rho_{l-1}\); and because \(\rho_0=1\),
 \(\rho_l = \phi_1^l\). This implies that the autocorrelation function of
 an AR(1) series decays exponentially with rate \(\phi_1\) and starting
 value 1. If \(\phi_1<0\) the series alternates between positive and
@@ -533,6 +533,14 @@ We simulate some moving average processes below:
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\KeywordTok{acf}\NormalTok{(ma_}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-3} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{# MA(2)}
 \NormalTok{ma_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =}\NormalTok{ n, }\KeywordTok{list}\NormalTok{(}\DataTypeTok{ma =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.8}\NormalTok{, }\FloatTok{0.15}\NormalTok{)), }\DataTypeTok{innov=}\KeywordTok{rnorm}\NormalTok{(n))}
 \KeywordTok{plot}\NormalTok{(ma_}\DecValTok{2}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
@@ -540,7 +548,15 @@ We simulate some moving average processes below:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-3} \end{center}
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-4} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{acf}\NormalTok{(ma_}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-5} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -551,7 +567,15 @@ We simulate some moving average processes below:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-4} \end{center}
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-6} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{acf}\NormalTok{(ma_}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/MA-7} \end{center}
 
 \section{Autoregressive Moving Average (ARMA)
 Processes}\label{autoregressive-moving-average-arma-processes}
@@ -696,15 +720,187 @@ available at the given time.
 
 \subsection{ARCH Effect}\label{arch-effect}
 
+Roughly speaking if the squared residuals display autocorrelation there
+exist ARCH effects (autoregressive conditional heteroskedasticity
+effects).
+
 Consider \(r_t = \mu_t + u_t\). The square of the residual series
 \(u_t = r_t - \mu_t\) is of interest for estimating conditional
-heteroskedasticity, also known as the ARCH effect (autoregressive
-conditional heteroskedasticity effect). A popular method of testing for
-ARCH effects is via Engel's Lagrange multiplier test which is equivalent
-to the standard \(F\) statistic for testing \(\beta_i=0\) in the
-multiple linear regression:
+heteroskedasticity. A popular method of testing for ARCH effects is via
+the Ljung and Box statistics applied to the squared residuals series.
 
-\[u_t^2 = \beta_0 + \beta_1u_{t-1}^2 + \hdots + \beta_m u_{t-m}^2 + \epsilon_t \]
+To test if autocorrelations of \(\{r_t\}\) are jointly 0, the
+Portmanteau statistic (also called the Box-Pierce statistic) is used:
+\[Q^*_m = T\cdot\sum_{l=1}^m \hat{\rho}^2_l\]
+
+The null hypothesis is \(H_0:\rho_1=\rho_2=\hdots=\rho_m=0\) and the
+alternative is that for some \(i\), \(\rho_i\neq 0\). If
+\(\{r_t\}_{t=1}^T\) are iid with some moment conditions,
+\(Q^*(m)\sim\chi^2(m)\).
+
+The \emph{Ljung-Box} test statistic is based on the Portmanteau
+statistic but increases its power via the following:
+\[Q(m)=T(T+2)\cdot\sum_{l=1}^m \frac{\hat{\rho}_l^2}{T-l}\]
+
+We test for ARCH effects via the function \texttt{Box.test()} including
+in the \texttt{stats()} package
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{)}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{type =} \StringTok{"Ljung-Box"}\NormalTok{) }\CommentTok{#Benchmark squared normals}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Ljung test
+## 
+## data:  rnorm(100)^2
+## X-squared = 0.1156, df = 1, p-value = 0.7339
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{(ret_BSE_sq, }\DataTypeTok{type =} \StringTok{"Box-Pierce"}\NormalTok{) }\CommentTok{#Squared BSE returns}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Pierce test
+## 
+## data:  ret_BSE_sq
+## X-squared = 152.37, df = 1, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{(ret_BSE_abs, }\DataTypeTok{type =} \StringTok{"Ljung-Box"}\NormalTok{) }\CommentTok{#Absolute BSE returns}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Ljung test
+## 
+## data:  ret_BSE_abs
+## X-squared = 318.58, df = 1, p-value < 2.2e-16
+\end{verbatim}
+
+The same behavior is observed for the US and Japanese market indices
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{((ret_sp500)}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{type =} \StringTok{"Ljung-Box"}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Ljung test
+## 
+## data:  (ret_sp500)^2
+## X-squared = 115.7, df = 1, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{Box.test}\NormalTok{((ret_nikkei)}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{type =} \StringTok{"Ljung-Box"}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Box-Ljung test
+## 
+## data:  (ret_nikkei)^2
+## X-squared = 174.83, df = 1, p-value < 2.2e-16
+\end{verbatim}
+
+Hence we may safely conclude that the market indices in question display
+ARCH effects---i.e., their squared residuals display autocorrelation.
+
+\section{Autoregressive Conditional Heteroskedasticity
+(ARCH)}\label{autoregressive-conditional-heteroskedasticity-arch}
+
+The essential idea behind ARCH models is that while the `shock' or
+`innovation' \(u_t\) is not autocorrelated, its squared lagged terms do
+display autocorrelation. In other words, the ARCH(\(m\)) process
+assumes:
+
+\[u_t = \sigma_t\epsilon_t\]
+\[\sigma_t^2 = \beta_0 + \beta_1u_{t-1}^2+\hdots+\beta_mu_{t-m}^2\]
+
+Here \(\epsilon_t\) is iid with mean 0 and variance 1; and all
+\(\beta_j\) are non negative, with \(\beta_0>0\). In practice it is
+common to assume that the shocks \(\epsilon_t\) are from a standard
+normal, standard \(T\) or some other suitable distribution. By
+construction, in ARCH models, large shocks tend to be followed by other
+large shocks.
+
+\subsection{Properties of ARCH(1)
+Processes}\label{properties-of-arch1-processes}
+
+Consider the ARCH(1) model: \[u_t = \sigma_t\epsilon_t\]
+\[\sigma^2_t = \beta_0 + \beta_1u_{t-1}^2\]
+
+Clearly the unconditional mean is
+\(\mathbb{E}(\mathbb{E}(u_t|\mathbb{F}_{t-1})) = 0\) and the variance is
+\(\text{var}(u_t)=\mathbb{E}(\mathbb{E}(u^2_t|\mathbb{F}_{t-1})) = \beta_0+\beta_1\mathbb{E}(u_{t-1}^2)\)
+and hence \[\text{var}(u_t) = \frac{\beta_0}{1-\beta_1}\]
+
+In the same way if we compute higher moments and more specifically, the
+kurtosis we find that the excess kurtosis of \(u_t\) is positive or in
+other words, for an ARCH(1) process the shocks are more
+fat-tailed---more likely to produce extreme values. This is consistent
+with empirical observations.
+
+\subsection{\texorpdfstring{Order Determination of ARCH(\(m\))
+Processes}{Order Determination of ARCH(m) Processes}}\label{order-determination-of-archm-processes}
+
+The ARCH(\(m\)) process is:
+\[\sigma_t^2 = \beta_0+\beta_1u_{t-1}^2+\hdots+\beta_mu_{t-m}^2\]
+
+Since \(u_t^2\) is an unbiased estimator of \(\sigma_t^2\) we can
+interpret the ARCH(\(m\)) process as a special form of an AR(\(m\))
+process for square errors.
+
+If ARCH effects are deemed significant, we can employ the PACFs of
+squared residuals to find the order of the ARCH series just as we did
+for AR processes.
+
+Hence we apply this idea to the market indices below.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_BSE_sq, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ARCH_order-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{((ret_sp500)}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ARCH_order-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{((ret_nikkei)}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ARCH_order-3} \end{center}
+
+Depending on the distributional assumptions for \(\epsilon_t\) we use
+different forms of the maximum likelihood estimation for estimating ARCH
+processes. Additionally to check if the ARCH model is well specified, we
+notice that \(\tilde{u}_t = \frac{u_t}{\sigma_t}\) is an iid sequence.
+
+\section{GARCH Processes}\label{garch-processes}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
