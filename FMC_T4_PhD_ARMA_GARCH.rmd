@@ -39,7 +39,7 @@ library(rmarkdown)
 library(knitr)
 library(moments) 
 library(tseries)
-library(fGarch)
+library(rugarch)
 
 knitr::opts_chunk$set(echo = T, 
                       warning = T, 
@@ -528,12 +528,39 @@ acf(ret_BSE_sq, na.action = na.pass)
 
 ```
 
-We will use two main functions for estimating such models. One is the function `tseries::garch()` which may be used for relatively simple fittings and the other are sets of functions from the package `fGarch` which offers more options including a diverse set of distributions for the innovations.
+We will use two main functions for estimating such models. One is the function `tseries::garch()` which may be used for relatively simple fittings and the other are sets of functions from the package `rugarch` which offers more options including a diverse set of distributions for the innovations.
 
 ```{r BSE_fit_ARMA_GARCH}
 
+# Specify an ARMA(1,1) GARCH(1,1) model
+spec_garch_BSE <- rugarch::ugarchspec() #empty specification
 
+# Estimate it
+est_garch_BSE <- rugarch::ugarchfit(data = !is.na(ret_BSE), #note
+                                    spec = spec_garch_BSE
+                                    )
+
+show(est_garch_BSE)
 
 ```
+
+<!-- We can also fit standard $T$ innovations instead of normal innovations: -->
+
+<!-- ```{r BSE_fit_ARMA_GARCH_T} -->
+
+<!-- # Specify an ARMA(1,1) GARCH model with T innovations.  -->
+<!-- spec_garch_BSE_T <- rugarch::ugarchspec(variance.model=list(model="sGARCH"), -->
+<!--                                         mean.model =  -->
+<!--                                       distribution.model = "std" -->
+<!--                                       ) -->
+
+<!-- # Estimate it -->
+<!-- est_garch_BSE_T <- rugarch::ugarchfit(data = !is.na(ret_BSE), -->
+<!--                                     spec = spec_garch_BSE_T -->
+<!--                                     ) -->
+
+<!-- show(est_garch_BSE) -->
+
+<!-- ``` -->
 
 # References
