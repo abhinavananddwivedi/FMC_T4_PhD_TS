@@ -39,6 +39,7 @@ library(rmarkdown)
 library(knitr)
 library(moments) 
 library(tseries)
+library(fGarch)
 
 knitr::opts_chunk$set(echo = T, 
                       warning = T, 
@@ -504,8 +505,35 @@ Depending on the distributional assumptions for $\epsilon_t$ we use different fo
 
 # Generalized ARCH (GARCH) Processes
 
+Usage of GARCH models can shorten the order of the corresponding ARCH models. A GARCH($m,n$) process is:
+\[u_t = \sigma_t \epsilon_t\]
+\[\sigma_t^2 = \alpha_0 + \sum_{i=1}^m \alpha_iu_{t-i}^2 + \sum_{j=1}^n \beta_j\sigma_{t-j}^2\]
+
+GARCH series can be thought to be ARMA series for the squared error $u_t^2$. GARCH models are consistent with the phenomenon of volatility clustering and thei tail distribution is fatter than that of normals.
+
+# Application: Fitting ARMA GARCH Models 
+
+We check if the three financial market indices can be fitted satisfactorily to ARMA GARCH processes.
+
+## The Bombay Stock Exchange
+
+```{r BSE_fit_ARMA_GARCH_ACF}
+
+# For lag order indication of MA and AR resp
+acf(ret_BSE, na.action = na.pass)
+pacf(ret_BSE, na.action = na.pass)
+
+# For lag order of ARCH and GARCH
+acf(ret_BSE_sq, na.action = na.pass)
+
+```
+
+We will use two main functions for estimating such models. One is the function `tseries::garch()` which may be used for relatively simple fittings and the other are sets of functions from the package `fGarch` which offers more options including a diverse set of distributions for the innovations.
+
+```{r BSE_fit_ARMA_GARCH}
 
 
 
+```
 
 # References

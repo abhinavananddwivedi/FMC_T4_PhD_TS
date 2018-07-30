@@ -756,7 +756,7 @@ in the \texttt{stats()} package
 ##  Box-Ljung test
 ## 
 ## data:  rnorm(100)^2
-## X-squared = 0.1156, df = 1, p-value = 0.7339
+## X-squared = 1.0548, df = 1, p-value = 0.3044
 \end{verbatim}
 
 \begin{Shaded}
@@ -900,7 +900,60 @@ different forms of the maximum likelihood estimation for estimating ARCH
 processes. Additionally to check if the ARCH model is well specified, we
 notice that \(\tilde{u}_t = \frac{u_t}{\sigma_t}\) is an iid sequence.
 
-\section{GARCH Processes}\label{garch-processes}
+\section{Generalized ARCH (GARCH)
+Processes}\label{generalized-arch-garch-processes}
+
+Usage of GARCH models can shorten the order of the corresponding ARCH
+models. A GARCH(\(m,n\)) process is: \[u_t = \sigma_t \epsilon_t\]
+\[\sigma_t^2 = \alpha_0 + \sum_{i=1}^m \alpha_iu_{t-i}^2 + \sum_{j=1}^n \beta_j\sigma_{t-j}^2\]
+
+GARCH series can be thought to be ARMA series for the squared error
+\(u_t^2\). GARCH models are consistent with the phenomenon of volatility
+clustering and thei tail distribution is fatter than that of normals.
+
+\section{Application: Fitting ARMA GARCH
+Models}\label{application-fitting-arma-garch-models}
+
+We check if the three financial market indices can be fitted
+satisfactorily to ARMA GARCH processes.
+
+\subsection{Sensex: Bombay Stock
+Exchange}\label{sensex-bombay-stock-exchange}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# For lag order of AR and MA}
+\KeywordTok{acf}\NormalTok{(ret_BSE, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_fit_ARMA_GARCH-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_BSE, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_fit_ARMA_GARCH-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# For lag order of ARCH and GARCH}
+
+\KeywordTok{acf}\NormalTok{(ret_BSE_sq, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_fit_ARMA_GARCH-3} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pacf}\NormalTok{(ret_BSE_sq, }\DataTypeTok{na.action =}\NormalTok{ na.pass)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/BSE_fit_ARMA_GARCH-4} \end{center}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
