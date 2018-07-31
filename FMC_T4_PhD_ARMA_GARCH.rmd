@@ -375,6 +375,30 @@ In general for an ARMA($p, q$) process we have the following definition:
 
 \[r_t = \phi_0 + \sum_{i=1}^p \phi_ir_{t-i}+u_t-\sum_{j=1}^q \theta_ju_{t-j}\]
 
+Here are some simulations from ARMA models.
+
+```{r ARMA_sim}
+
+n_arma <- 300
+
+#ARMA(1,1)
+arma_11 <- arima.sim(n = n_arma, 
+                     list(ar = c(0.5), ma = c(0.5)), 
+                     innov = rnorm(n_arma)
+                     )
+plot(arma_11, col = "blue")
+abline(h = 0 )
+
+#ARMA(2,2)
+arma_22 <- arima.sim(n = n_arma, 
+                     list(ar = c(0.5, 0.4), ma = c(0.5, 0.4)), 
+                     innov = rnorm(n_arma)
+                     )
+plot(arma_22, col = "blue")
+abline(h = 0 )
+
+```
+
 # Conditional Heteroskedasticity Models
 
 In empirical time series, we do not observe volatility directly but only estimate it with the help of some other directly observed characteristics. However as discussed in @Cont:2001 volatility displays some striking regularities such as volatility clustering and differential reaction to price changes.

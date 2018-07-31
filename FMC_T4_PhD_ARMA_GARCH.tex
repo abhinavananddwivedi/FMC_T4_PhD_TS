@@ -607,6 +607,38 @@ definition:
 
 \[r_t = \phi_0 + \sum_{i=1}^p \phi_ir_{t-i}+u_t-\sum_{j=1}^q \theta_ju_{t-j}\]
 
+Here are some simulations from ARMA models.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n_arma <-}\StringTok{ }\DecValTok{300}
+
+\CommentTok{#ARMA(1,1)}
+\NormalTok{arma_}\DecValTok{11}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =}\NormalTok{ n_arma, }
+                     \KeywordTok{list}\NormalTok{(}\DataTypeTok{ar =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{), }\DataTypeTok{ma =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{)), }
+                     \DataTypeTok{innov =} \KeywordTok{rnorm}\NormalTok{(n_arma)}
+\NormalTok{                     )}
+\KeywordTok{plot}\NormalTok{(arma_}\DecValTok{11}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{ )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ARMA_sim-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#ARMA(2,2)}
+\NormalTok{arma_}\DecValTok{22}\NormalTok{ <-}\StringTok{ }\KeywordTok{arima.sim}\NormalTok{(}\DataTypeTok{n =}\NormalTok{ n_arma, }
+                     \KeywordTok{list}\NormalTok{(}\DataTypeTok{ar =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\FloatTok{0.4}\NormalTok{), }\DataTypeTok{ma =} \KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\FloatTok{0.4}\NormalTok{)), }
+                     \DataTypeTok{innov =} \KeywordTok{rnorm}\NormalTok{(n_arma)}
+\NormalTok{                     )}
+\KeywordTok{plot}\NormalTok{(arma_}\DecValTok{22}\NormalTok{, }\DataTypeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\KeywordTok{abline}\NormalTok{(}\DataTypeTok{h =} \DecValTok{0}\NormalTok{ )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{FMC_T4_PhD_ARMA_GARCH_files/figure-latex/ARMA_sim-2} \end{center}
+
 \section{Conditional Heteroskedasticity
 Models}\label{conditional-heteroskedasticity-models}
 
@@ -756,7 +788,7 @@ in the \texttt{stats()} package
 ##  Box-Ljung test
 ## 
 ## data:  rnorm(100)^2
-## X-squared = 0.06802, df = 1, p-value = 0.7942
+## X-squared = 1.0275, df = 1, p-value = 0.3107
 \end{verbatim}
 
 \begin{Shaded}
@@ -954,12 +986,10 @@ distributions for the innovations.
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{# Specify an ARMA(1,1) GARCH(1,1) model}
-\NormalTok{spec_garch_BSE <-}\StringTok{ }\NormalTok{rugarch}\OperatorTok{::}\KeywordTok{ugarchspec}\NormalTok{(}\DataTypeTok{variance.model=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{model=}\StringTok{"sGARCH"}\NormalTok{),}
-                                      \DataTypeTok{mean.model=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{armaOrder=}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{))}
-\NormalTok{                                      )}
+\NormalTok{spec_garch_BSE <-}\StringTok{ }\NormalTok{rugarch}\OperatorTok{::}\KeywordTok{ugarchspec}\NormalTok{() }\CommentTok{#empty specification}
 
 \CommentTok{# Estimate it}
-\NormalTok{est_garch_BSE <-}\StringTok{ }\NormalTok{rugarch}\OperatorTok{::}\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{data =} \OperatorTok{!}\KeywordTok{is.na}\NormalTok{(ret_BSE),}
+\NormalTok{est_garch_BSE <-}\StringTok{ }\NormalTok{rugarch}\OperatorTok{::}\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{data =} \OperatorTok{!}\KeywordTok{is.na}\NormalTok{(ret_BSE), }\CommentTok{#note}
                                     \DataTypeTok{spec =}\NormalTok{ spec_garch_BSE}
 \NormalTok{                                    )}
 
@@ -1065,131 +1095,7 @@ distributions for the innovations.
 ## 4    50    212660            0
 ## 
 ## 
-## Elapsed time : 0.5346069
-\end{verbatim}
-
-We can also fit standard \(T\) innovations instead of normal
-innovations:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# Specify an ARMA(1,1) GARCH model}
-\NormalTok{spec_garch_BSE <-}\StringTok{ }\NormalTok{rugarch}\OperatorTok{::}\KeywordTok{ugarchspec}\NormalTok{(}\DataTypeTok{variance.model=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{model=}\StringTok{"sGARCH"}\NormalTok{),}
-                                      \DataTypeTok{mean.model=}\KeywordTok{list}\NormalTok{(}\DataTypeTok{armaOrder=}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{)),}
-                                      \DataTypeTok{distribution.model =} \StringTok{"std"}
-\NormalTok{                                      )}
-
-\CommentTok{# Estimate it}
-\NormalTok{est_garch_BSE <-}\StringTok{ }\NormalTok{rugarch}\OperatorTok{::}\KeywordTok{ugarchfit}\NormalTok{(}\DataTypeTok{data =} \OperatorTok{!}\KeywordTok{is.na}\NormalTok{(ret_BSE),}
-                                    \DataTypeTok{spec =}\NormalTok{ spec_garch_BSE}
-\NormalTok{                                    )}
-
-\KeywordTok{show}\NormalTok{(est_garch_BSE)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-## 
-## *---------------------------------*
-## *          GARCH Model Fit        *
-## *---------------------------------*
-## 
-## Conditional Variance Dynamics    
-## -----------------------------------
-## GARCH Model  : sGARCH(1,1)
-## Mean Model   : ARFIMA(1,0,1)
-## Distribution : std 
-## 
-## Optimal Parameters
-## ------------------------------------
-##         Estimate  Std. Error    t value Pr(>|t|)
-## mu       1.00000    0.000058 1.7246e+04 0.000000
-## ar1      0.00000    0.402015 0.0000e+00 1.000000
-## ma1      0.24835    0.322341 7.7046e-01 0.441024
-## omega    0.00000    0.000000 4.4808e+00 0.000007
-## alpha1   0.05000    0.007710 6.4854e+00 0.000000
-## beta1    0.90000    0.001950 4.6162e+02 0.000000
-## shape    4.00000    0.051517 7.7645e+01 0.000000
-## 
-## Robust Standard Errors:
-##         Estimate  Std. Error    t value Pr(>|t|)
-## mu       1.00000    0.000130 7675.49295 0.000000
-## ar1      0.00000    0.356266    0.00000 1.000000
-## ma1      0.24835    0.183749    1.35159 0.176507
-## omega    0.00000    0.000000    0.99992 0.317347
-## alpha1   0.05000    0.023766    2.10381 0.035395
-## beta1    0.90000    0.005188  173.49298 0.000000
-## shape    4.00000    0.006755  592.16490 0.000000
-## 
-## LogLikelihood : 25313.9 
-## 
-## Information Criteria
-## ------------------------------------
-##                     
-## Akaike       -11.590
-## Bayes        -11.580
-## Shibata      -11.590
-## Hannan-Quinn -11.586
-## 
-## Weighted Ljung-Box Test on Standardized Residuals
-## ------------------------------------
-##                         statistic p-value
-## Lag[1]                      1.321  0.2503
-## Lag[2*(p+q)+(p+q)-1][5]     1.393  0.9992
-## Lag[4*(p+q)+(p+q)-1][9]     1.402  0.9981
-## d.o.f=2
-## H0 : No serial correlation
-## 
-## Weighted Ljung-Box Test on Standardized Squared Residuals
-## ------------------------------------
-##                         statistic p-value
-## Lag[1]                  0.0003925  0.9842
-## Lag[2*(p+q)+(p+q)-1][5] 0.0003937  1.0000
-## Lag[4*(p+q)+(p+q)-1][9] 0.0003939  1.0000
-## d.o.f=2
-## 
-## Weighted ARCH LM Tests
-## ------------------------------------
-##             Statistic Shape Scale P-Value
-## ARCH Lag[3] 5.822e-09 0.500 2.000  0.9999
-## ARCH Lag[5] 6.044e-09 1.440 1.667  1.0000
-## ARCH Lag[7] 6.580e-09 2.315 1.543  1.0000
-## 
-## Nyblom stability test
-## ------------------------------------
-## Joint Statistic:  -5023.538
-## Individual Statistics:              
-## mu       46.12
-## ar1      16.64
-## ma1      18.54
-## omega  1353.46
-## alpha1  101.01
-## beta1  1151.79
-## shape  1301.00
-## 
-## Asymptotic Critical Values (10% 5% 1%)
-## Joint Statistic:          1.69 1.9 2.35
-## Individual Statistic:     0.35 0.47 0.75
-## 
-## Sign Bias Test
-## ------------------------------------
-##                      t-value      prob sig
-## Sign Bias          2.005e+01 1.221e-85 ***
-## Negative Sign Bias 1.152e+03 0.000e+00 ***
-## Positive Sign Bias 7.698e+01 0.000e+00 ***
-## Joint Effect       1.446e+06 0.000e+00 ***
-## 
-## 
-## Adjusted Pearson Goodness-of-Fit Test:
-## ------------------------------------
-##   group statistic p-value(g-1)
-## 1    20     82196            0
-## 2    30    125454            0
-## 3    40    168789            0
-## 4    50    212138            0
-## 
-## 
-## Elapsed time : 1.540517
+## Elapsed time : 0.5396347
 \end{verbatim}
 
 \section*{References}\label{references}
