@@ -1,0 +1,192 @@
+---
+title: "Wiener Processes"
+author: Abhinav Anand, IIMB
+date: '`r format(Sys.time(), "%Y/%m/%d")`' #current date
+
+output:
+  pdf_document:
+    keep_tex: true
+
+fontsize: 11pt
+documentclass: article
+geometry: margin = 1.5in
+
+linkcolor: blue
+urlcolor: red
+citecolor: magenta
+
+citation_package: natbib
+bibliography: Working_Paper.bib
+
+header-includes:
+   - \linespread{1.25}
+   - \usepackage{amsmath}
+
+
+---
+
+
+---
+nocite: |
+  @Tsay:2010
+  @Jondeau_Poon_Rockinger:2007
+...
+
+```{r setup, eval=T, message=FALSE, warning=F, include=FALSE}
+
+library(tidyverse)
+library(rmarkdown)
+library(knitr)
+library(moments) 
+library(tseries)
+library(rugarch)
+
+knitr::opts_chunk$set(echo = T, 
+                      warning = T, 
+                      message = F, 
+                      eval = T, 
+                      include = T,
+                      fig.height=3.5, 
+                      fig.width=3.5,
+                      fig.align = 'center'
+                      )
+
+### Old Time Series code to be recycled here ###
+file_bse <- "SENSEX.csv" 
+index_bse <- readr::read_csv(file_bse) %>%
+  dplyr::select(-empty)
+index_bse$Date <- as.Date(index_bse$Date, 
+                          format = "%d-%B-%Y"
+                          ) #date reformat
+
+
+
+```
+
+
+# Wiener Processes
+
+For discrete time financial time series, the building blocks are the "innovations" or the error terms that are assumed to be emanating from some distribution with presumably constant mean and variance. In other words, the "increments" $\epsilon_t$ to the financial time series are iid with fixed mean and variances. This idea can be used to characterize increments $dW_t$ to a stochastic process $W_t$ in continous time---the Wiener Process---that is the continuous counterpart to a discrete financial time series.
+
+A continuous stochastic process $W_t$ is a Wiener Process if its increments: $W_{t+\delta t}-W_{t}=\delta W_t$ are:
+
+1. *Normal Increments*: $W_{\delta t}\sim \mathcal{N}(0, \delta t)$
+2. *Independent Increments*: $W_{\delta t}$ is independent of $W_{s<t}$
+
+From 1. it follows that we can consider $\delta W_t = \epsilon\sqrt{\delta t}$, where $\epsilon\sim \mathcal{N}(0,1)$.[^Wiener_Formal]
+
+[^Wiener_Formal]: More formally, a Wiener process is a real valued, (almost surely) continuous stochastic process with independent and stationary increments.
+
+If we consider $W_T-W_0$ as a sum of small increments $\delta t = T/n$ or $T - 0 = n\delta t$,
+
+\[W_T-W_0=W_{n\delta t}-W_0=\sum_{i=1}^n \delta w_i = \sum_{i=1}^n \epsilon_i \sqrt{\delta t}\]
+
+And since $\epsilon_i$ are iid, 
+
+\[\mathbb{E}(W_T-W_0) = 0\]
+\[\text{var}(W_T-W_0) = \sum_{i=1}^n \delta t = n\delta t = T\]
+
+Hence each segment from time 0 to $T$ is distributed as $W_T-W_0\sim\mathcal{N}(0, T)$. More generally, $W_t-W_s\sim \mathcal{N}(\mu(t-s), \sigma^2(t-s))$.
+
+```{r wiener_process_mean_var}
+
+# T = 100
+T_1 = 100
+w_1 <- rnorm(T_1)
+w_1sum <- cumsum(w_1)
+
+plot(w_1sum,
+     type = "l"
+     )
+
+
+# T = 1000
+T_2 = 1000
+w_2 <- rnorm(T_2)
+w_2sum <- cumsum(w_2)
+
+plot(w_2sum,
+     type = "l"
+     )
+
+
+
+# T = 10000
+T_3 = 10000
+w_3 <- rnorm(T_3)
+w_3sum <- cumsum(w_3)
+
+plot(w_3sum,
+     type = "l"
+     )
+
+
+```
+
+While the paths of Wiener Processes are continuous (almost surely) they are also non-differentiable (almost surely). As a result, we cannot use our classical ideas of Riemannian integration anymore.
+
+## Wiener Process with Drift
+
+If the drift rate for a Wiener Process $X_t$ is $\mu$ and the variance change rate is $\sigma^2$, we can generalize such a process as:
+\[dX_t = \mu dt + \sigma dW_t\]
+
+where $W_t$ is a standard Wiener Process. A discretized version takes the following form:
+
+\[X_t-X_0 = \mu t+\sigma \epsilon \sqrt{t}\]
+
+which yields $\mathbb{E}(X_t-X_0)=\mu t$ and $\text{var}(X_t-X_0) = \sigma^2 t$. More generally, the drift and volatility could depend on $X_t$ in which case we get the classic Ito Process:
+
+\[X_t-X_0 = \mu(X_t, t) dt+ \sigma(X_t, t)dW_t\]
+
+# Ito's Lemma
+
+Consider some function $G(x_1, x_2)$. From calculus we know that:
+
+\[\delta G = \frac{\partial G}{\partial x_1}\cdot \delta x_1 +
+\frac{\partial G}{\partial x_2}\cdot \delta x_2 + 
+\frac{1}{2!}\frac{\partial^2 G}{\partial x_1^2}\cdot (\delta x_1)^2 +
+\frac{1}{2!}\frac{\partial^2 G}{\partial x_2^2}\cdot (\delta x_2)^2 +
+\frac{\partial^2 G}{\partial x_1 \partial x_2}\cdot (\delta x_1)(\delta x_2) + \hdots
+\]
+
+As $\delta x_1, \delta x_2\to 0$
+
+\[dG = \frac{\partial G}{\partial x_1}dx_1 + \frac{\partial G}{\partial x_2}dx_2\]
+
+Now let us suppose that $G$ depends on $X_t$ and $t$ where $X_t$ is some Ito Process.
+
+\[\delta G = \frac{\partial G}{\partial x}\cdot \delta x +
+\frac{\partial G}{\partial t}\cdot \delta t + 
+\frac{1}{2!}\frac{\partial^2 G}{\partial x^2}\cdot (\delta x)^2 +
+\frac{1}{2!}\frac{\partial^2 G}{\partial t^2}\cdot (\delta t)^2 +
+\frac{\partial^2 G}{\partial x \partial t}\cdot (\delta x)(\delta t) + \hdots
+\]
+
+A discretized Ito Process is:
+
+\[\delta x = \mu \delta t+\sigma\epsilon \sqrt{t}\]
+
+This may be used to compute $(\delta x)^2$.
+
+\[(\delta x)^2 = \mu^2(\delta t)^2 + \sigma^2 \epsilon^2\delta t+
+2\mu\sigma\epsilon(\delta t)^{3/2}=\sigma^2\epsilon^2\delta t+H(\delta t)\]
+
+where $H(\cdot)$ denote higher order terms in $\delta t$.
+
+It's clearly seen here that the $(\delta x)^2$ term depends on order $\delta t$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# References
