@@ -39,7 +39,7 @@ library(rmarkdown)
 library(knitr)
 library(moments) 
 library(tseries)
-library(rugarch)
+library(sde)
 
 knitr::opts_chunk$set(echo = T, 
                       warning = T, 
@@ -164,7 +164,7 @@ Now let us suppose that $G$ depends on $X_t$ and $t$ where $X_t$ is some Ito Pro
 
 A discretized Ito Process is:
 
-\[\delta x = \mu \delta t+\sigma\epsilon \sqrt{t}\]
+\[\delta x = \mu \delta t+\sigma\epsilon \sqrt{\delta t}\]
 
 This may be used to compute $(\delta x)^2$.
 
@@ -173,20 +173,119 @@ This may be used to compute $(\delta x)^2$.
 
 where $H(\cdot)$ denote higher order terms in $\delta t$.
 
-It's clearly seen here that the $(\delta x)^2$ term depends on order $\delta t$.
+It's clearly seen here that the $(\delta x)^2$ term depends on order $\delta t$. We also notice that 
+\[\mathbb{E}(\sigma^2\epsilon^2\delta t) = \sigma^2\delta t\]
+\[\text{var}(\sigma^2\epsilon^2\delta t) = \mathbb{E}(\sigma^4\epsilon^4(\delta t)^2)-
+[\mathbb{E}(\sigma^2\epsilon^2\delta t)]^2 = 2\sigma^4(\delta t)^2\]
+
+where we used $\mathbb{E}(\epsilon^4) = 3$ for standard normal random variables. Hence we can claim that:
+
+\[\lim_{\delta t\to 0} \sigma^2\epsilon^2\delta t = \sigma^2\delta t\]
+
+Hence relooking at
+
+\[(\delta x)^2 = \mu^2(\delta t)^2 + \sigma^2 \epsilon^2\delta t+
+2\mu\sigma\epsilon(\delta t)^{3/2}=\sigma^2\epsilon^2\delta t+H(\delta t)\]
+
+we can observe that as $\delta t\to 0$
+
+\[(\delta x)^2\to \sigma^2\delta t \]
+
+This gives us an expansion of an Ito Process which is slightly different from the results of classical calculus:
+
+\[\delta G = \frac{\partial G}{\partial x}\cdot \delta x +
+\frac{\partial G}{\partial t}\cdot \delta t + 
+\frac{1}{2!}\frac{\partial^2 G}{\partial x^2}\cdot (\delta x)^2 +
+\frac{1}{2!}\frac{\partial^2 G}{\partial t^2}\cdot (\delta t)^2 +
+\frac{\partial^2 G}{\partial x \partial t}\cdot (\delta x)(\delta t) + \hdots
+\]
+
+\[dG = \frac{\partial G}{\partial x}dx +
+\frac{\partial G}{\partial t} dt +
+\frac{1}{2}\frac{\partial G}{\partial x^2} \sigma^2dt
+\]
+
+If we consider $X_t = \mu dt + \sigma dW_t$, we get the classic Ito's Lemma
+
+\[dG = (\frac{\partial G}{\partial x}\mu + 
+\frac{\partial G}{\partial t} + \frac{1}{2}\frac{\partial^2 G}{\partial x^2}\sigma^2)dt +
+\frac{\partial G}{\partial x}\sigma dW_t\]
+
+This may be stated more simply as:
+
+\[dG(X_t, t) = G^{\prime}(X_t, t)dX_t + \frac{1}{2} G^{\prime\prime}(X_t) \sigma^2_tdt\]
+
+## Application: $G(W_t) = W_t^2$
+
+Consider a squared standard Wiener Process: $G(X_t) = W_t^2$. What is its equation?
+
+We know that 
+
+\[dG = \frac{\partial G}{\partial W}\sigma dW + 
+\frac{\partial G}{\partial t}dt +
+\frac{1}{2}\frac{\partial^2 G}{\partial W^2}dt +
+\frac{\partial G}{\partial W}\mu dt
+\]
+
+Hence the (stochastic differential) equation for this process is:
+\[dW_t^2 = dt + 2W_tdW_t\]
+
+What about a general process $G = W_t^n$?
+
+\[G^{\prime}(X_t, t) = nW_t^{n-1}\]
+\[G^{\prime\prime}(X_t, t) = n(n-1)W_t^{n-2}\]
+
+Hence 
+\[dW_t^n = \frac{1}{2}n(n-1)W_t^{n-2}dt + nW_t^{n-1}dW_t\]
+
+## Application: Log Price Process
+
+A special application is the evolution of log prices. Suppose $P_t$ be the price at time $t$. It is often assumed that the price follows the following Ito Process---the Geometric Brownian Motion---with constant drift and diffusion:
+
+\[dP_t = \mu P_tdt + \sigma P_t dW_t\]
+
+For the log price process: $G = \ln(P_t)$
+
+\[d(\ln P_t) = (\frac{\partial \ln P_t}{\partial t} + 
+\frac{1}{2} \frac{\partial^2 \ln P_t}{\partial P^2_t}) dt +
+\frac{\partial \ln P_t}{\partial P_t}dW_t
+\]
+
+\[d(\ln P_t) = (\mu-\sigma^2/2)dt + \sigma dW_t \]
+
+# The package `sde`
+
+We use the package `sde` for analyzing stochastic differential equations
+
+## Standard Wiener Process
+
+```{r sde_Wiener}
+
+# Standard Wiener Process
+plot(sde::sde.sim(X0 = 0, t0 = 0, 
+                  drift = expression(1), #note expression
+                  sigma = expression(1)
+                  ),
+     ylab = "SDE level"
+     )
 
 
+```
 
+A more complex motion as shown below can also be simulated.
 
+\[dX_t = (-11x + 6x^2 -x^3)dt + dW_t\]
 
+```{r sde_ex_2}
 
+plot(sde::sde.sim(X0 = 0, 
+                  t0 = 0, 
+                  drift = expression(-11*x + 6*x^2 - x^3), 
+                  sigma = expression(1)
+                  ),
+     ylab = "SDE level"
+     )
 
-
-
-
-
-
-
-
+```
 
 # References
